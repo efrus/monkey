@@ -4,8 +4,8 @@ pub enum Token {
     Eof,
 
     // Identifiers + literals
-    Ident,
-    Int,
+    Ident(String),
+    Int(String),
 
     // Operators
     Assign,
@@ -39,4 +39,19 @@ pub enum Token {
     Let,
     Return,
     True,
+}
+
+impl Token {
+    pub fn lookup_ident(ident: String) -> Token {
+        match ident.as_str() {
+            "else" => Token::Else,
+            "false" => Token::False,
+            "fn" => Token::Function,
+            "if" => Token::If,
+            "let" => Token::Let,
+            "return" => Token::Return,
+            "true" => Token::True,
+            _ => Token::Ident(ident),
+        }
+    }
 }
