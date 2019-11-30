@@ -1,45 +1,42 @@
-pub type TokenType = String;
+#[derive(Debug, PartialEq)]
+pub enum Token {
+    Illegal,
+    Eof,
 
-pub struct Token {
-    Type: TokenType,
-    Literal: String,
+    // Identifiers + literals
+    Ident,
+    Int,
+
+    // Operators
+    Assign,
+    Asterisk,
+    Bang,
+    Minus,
+    Plus,
+    Slash,
+
+    // Comparison
+    Gt,
+    Lt,
+    Eq,
+    NotEq,
+
+    // Delimiters
+    Comma,
+    Semicolon,
+
+    // Grouping
+    LBrace,
+    LParen,
+    RBrace,
+    RParen,
+
+    // Keywords
+    Else,
+    False,
+    Function,
+    If,
+    Let,
+    Return,
+    True,
 }
-
-pub const ILLEGAL: &str = "ILLEGAL";
-pub const EOF: &str = "EOF";
-
-// Identifiers + literals
-pub const IDENT: &str = "IDENT"; // add, foobar, x, y, ...
-pub const INT: &str = "INT"; // 1343456
-
-// Operators
-pub const ASSIGN: &str = "=";
-pub const PLUS: &str = "+";
-pub const MINU: &str = "-";
-pub const BANG: &str = "!";
-pub const ASTERISK: &str = "*";
-pub const SLAS: &str = "/";
-
-pub const LT: &str = "<";
-pub const GT: &str = ">";
-
-pub const EQ: &str = "==";
-pub const NOT_EQ: &str = "!=";
-
-// Delimiters
-pub const COMMA: &str = ",";
-pub const SEMICOLON: &str = ";";
-
-pub const LPAREN: &str = "(";
-pub const RPAREN: &str = ")";
-pub const LBRACE: &str = "{";
-pub const RBRACE: &str = "}";
-
-// Keywords
-pub const FUNCTION: &str = "FUNCTION";
-pub const LET: &str = "LET";
-pub const TRUE: &str = "TRUE";
-pub const FALS: &str = "FALSE";
-pub const IF: &str = "IF";
-pub const ELSE: &str = "ELSE";
-pub const RETURN: &str = "RETURN";

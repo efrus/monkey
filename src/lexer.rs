@@ -1,14 +1,13 @@
-use crate::token;
 use crate::token::Token;
 use std::iter::Peekable;
 use std::str::Chars;
 
-pub struct Lexer {
-    input: Peekable<Chars>,
+pub struct Lexer<'a> {
+    input: Peekable<Chars<'a>>,
 }
 
-impl Lexer {
-    pub fn New(input: String) -> Lexer {
+impl<'a> Lexer<'a> {
+    pub fn new(input: &'a str) -> Lexer<'a> {
         Lexer {
             input: input.chars().peekable(),
         }
@@ -18,18 +17,18 @@ impl Lexer {
         self.input.next()
     }
 
-    pub fn NextToken(&mut self) -> Option<Token> {
+    pub fn next_token(&mut self) -> Option<Token> {
         if let Some(c) = self.read_char() {
             match c {
-                '=' => new_token(token::ASSIGN, c),
-                ';' => new_token(token::SEMICOLON, c),
-                '(' => new_token(token::LPAREN, c),
-                ')' => new_token(token::RPAREN, c),
-                ',' => new_token(token::COMMA, c),
-                '+' => new_token(token::PLUS, c),
-                '{' => new_token(token::LBRACE, c),
-                '}' => new_token(token::RBRACE, c),
-                _ => new_token(token::EOF, ""),
+                '=' => Some(Token::Assign),
+                ';' => Some(Token::Semicolon),
+                '(' => Some(Token::LParen),
+                ')' => Some(Token::RParen),
+                ',' => Some(Token::Comma),
+                '+' => Some(Token::Plus),
+                '{' => Some(Token::LBrace),
+                '}' => Some(Token::RBrace),
+                _ => Some(Token::Eof),
             }
         } else {
             None
@@ -37,39 +36,39 @@ impl Lexer {
     }
 }
 
-fn new_token(token_type: token::TokenType, c: char) -> Option<Token> {
-    Some(Token {
-        Type: token_type,
-        Literal: c.to_string(),
-    })
-}
+/*impl<'a> Iterator for Lexer<'a> {
+    type Item = Token;
+    fn next(&mut self) -> Option<Token> {
+        self.next_token()
+    }
+}*/
 
 #[cfg(test)]
 mod tests {
-    use crate::lexer;
-    use crate::token;
+    use crate::lexer::Lexer;
+    use crate::token::Token;
 
-    fn TestNextToken() {
+    #[test]
+    fn test_next_token() {
         let input = "=+(){},;";
 
-        let mut tests: Vec<(&str, &str)> = Vec::new();
-        tests.push((token::ASSIGN, "="));
-        tests.push((token::PLUS, "+"));
-        tests.push((token::LPAREN, "("));
-        tests.push((token::RPAREN, ")"));
-        tests.push((token::LBRACE, "{"));
-        tests.push((token::RBRACE, "}"));
-        tests.push((token::COMMA, ","));
-        tests.push((token::SEMICOLON, ";"));
-        tests.push((token::EOF, ""));
+        let mut tests = Vec::new();
+        tests.push(Some(Token::Assign));
+        tests.push(Some(Token::Plus));
+        tests.push(Some(Token::LParen));
+        tests.push(Some(Token::RParen));
+        tests.push(Some(Token::LBrace));
+        tests.push(Some(Token::RBrace));
+        tests.push(Some(Token::Comma));
+        tests.push(Some(Token::Semicolon));
+        tests.push(None);
 
-        let l = Lexer::new(input);
+        let mut l = Lexer::new(input);
 
-        for t in tests {
-            let tok = l.NextToken();
-
-            assert_eq!(tok.Type, t.0);
-            assert_eq!(tok.Literal, t.1);
+        for test in tests {
+            let tok = l.next_token();
+            println!("expected {:?}, lexed {:?} ", test, tok);
+            assert_eq!(tok, test);
         }
     }
 }
