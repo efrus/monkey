@@ -61,12 +61,32 @@ impl<'a> Lexer<'a> {
         self.skip_whitespace();
         if let Some(c) = self.read_char() {
             match c {
-                '=' => Some(Token::Assign),
+                '=' => {
+                    if let Some(&'=') = self.peek_char() {
+                        self.read_char();
+                        Some(Token::Eq)
+                    } else {
+                        Some(Token::Assign)
+                    }
+                }
+                '+' => Some(Token::Plus),
+                '-' => Some(Token::Minus),
+                '!' => {
+                    if let Some(&'=') = self.peek_char() {
+                        self.read_char();
+                        Some(Token::NotEq)
+                    } else {
+                        Some(Token::Bang)
+                    }
+                }
+                '/' => Some(Token::Slash),
+                '*' => Some(Token::Asterisk),
+                '<' => Some(Token::Lt),
+                '>' => Some(Token::Gt),
                 ';' => Some(Token::Semicolon),
+                ',' => Some(Token::Comma),
                 '(' => Some(Token::LParen),
                 ')' => Some(Token::RParen),
-                ',' => Some(Token::Comma),
-                '+' => Some(Token::Plus),
                 '{' => Some(Token::LBrace),
                 '}' => Some(Token::RBrace),
                 _ => {
@@ -112,6 +132,18 @@ let add = fn(x, y) {
 };
 
 let result = add(five, ten);
+!-/*5;
+5 < 10 > 5;
+
+if (5 < 10) {
+	return true;
+} else {
+	return false;
+}
+
+10 == 10;
+10 != 9;
+
 ";
         let mut tests = Vec::new();
         tests.push(Some(Token::Let));
@@ -150,8 +182,46 @@ let result = add(five, ten);
         tests.push(Some(Token::Ident("ten".to_string())));
         tests.push(Some(Token::RParen));
         tests.push(Some(Token::Semicolon));
-        tests.push(None);
 
+        tests.push(Some(Token::Bang));
+        tests.push(Some(Token::Minus));
+        tests.push(Some(Token::Slash));
+        tests.push(Some(Token::Asterisk));
+        tests.push(Some(Token::Int("5".to_string())));
+        tests.push(Some(Token::Semicolon));
+        tests.push(Some(Token::Int("5".to_string())));
+        tests.push(Some(Token::Lt));
+        tests.push(Some(Token::Int("10".to_string())));
+        tests.push(Some(Token::Gt));
+        tests.push(Some(Token::Int("5".to_string())));
+        tests.push(Some(Token::Semicolon));
+        tests.push(Some(Token::If));
+        tests.push(Some(Token::LParen));
+        tests.push(Some(Token::Int("5".to_string())));
+        tests.push(Some(Token::Lt));
+        tests.push(Some(Token::Int("10".to_string())));
+        tests.push(Some(Token::RParen));
+        tests.push(Some(Token::LBrace));
+        tests.push(Some(Token::Return));
+        tests.push(Some(Token::True));
+        tests.push(Some(Token::Semicolon));
+        tests.push(Some(Token::RBrace));
+        tests.push(Some(Token::Else));
+        tests.push(Some(Token::LBrace));
+        tests.push(Some(Token::Return));
+        tests.push(Some(Token::False));
+        tests.push(Some(Token::Semicolon));
+        tests.push(Some(Token::RBrace));
+
+        tests.push(Some(Token::Int("10".to_string())));
+        tests.push(Some(Token::Eq));
+        tests.push(Some(Token::Int("10".to_string())));
+        tests.push(Some(Token::Semicolon));
+        tests.push(Some(Token::Int("10".to_string())));
+        tests.push(Some(Token::NotEq));
+        tests.push(Some(Token::Int("9".to_string())));
+        tests.push(Some(Token::Semicolon));
+        tests.push(None);
         let mut l = Lexer::new(input);
 
         for test in tests {
