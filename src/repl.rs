@@ -13,7 +13,7 @@ pub fn start() -> Result<(), Box<dyn Error>> {
 
         let mut l = Lexer::new(&input);
         while let Some(tok) = l.next_token() {
-            println!("{:?}", tok);
+            println!("Type:{:?} Literal:{}", tok, tok);
         }
     }
 }
