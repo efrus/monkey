@@ -55,3 +55,37 @@ impl Token {
         }
     }
 }
+
+/*impl fmt::Display for Token {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let output = match &self {
+            Token::Ident(s) => s,
+            Token::Int(s) => s,
+            Token::Assign => "=",
+            Token::Asterisk => "*",
+            Token::Bang => "!",
+            Token::Minus => "-",
+            Token::Plus => "+",
+            Token::Slash => "/",
+            Token::Gt => ">",
+            Token::Lt => "<",
+            Token::Eq => "==",
+            Token::NotEq => "!=",
+            Token::Comma => ",",
+            Token::Semicolon => ";",
+            Token::LBrace => "{",
+            Token::LParen => "(",
+            Token::RBrace => "}",
+            Token::RParen => ")",
+            Token::Else => "else",
+            Token::False => "false",
+            Token::Function => "fn",
+            Token::If => "if",
+            Token::Let => "let",
+            Token::Return => "return",
+            Token::True => "true",
+            _ => "ILLEGAL",
+        };
+        write!(f, "{}", output)
+    }
+}*/
