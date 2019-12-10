@@ -109,13 +109,6 @@ fn is_letter(ch: char) -> bool {
     ch.is_alphabetic() || ch == '_'
 }
 
-/*impl<'a> Iterator for Lexer<'a> {
-    type Item = Token;
-    fn next(&mut self) -> Option<Token> {
-        self.next_token()
-    }
-}*/
-
 #[cfg(test)]
 mod tests {
     use crate::lexer::Lexer;
