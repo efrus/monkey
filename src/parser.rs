@@ -6,6 +6,7 @@ pub struct Parser<'a> {
     lexer: Lexer<'a>,
     current_token: Option<Token>,
     peek_token: Option<Token>,
+    errors: Vec<String>,
 }
 
 impl<'a> Parser<'a> {
@@ -14,6 +15,7 @@ impl<'a> Parser<'a> {
             lexer,
             current_token: None,
             peek_token: None,
+            errors: vec![],
         };
 
         p.next_token();
@@ -93,7 +95,21 @@ impl<'a> Parser<'a> {
             self.next_token();
             return true;
         }
+        self.peek_error(&t);
         false
+    }
+
+    fn peek_error(&mut self, t: &Token) {
+        let token = match &self.peek_token {
+            Some(val) => val,
+            None => &Token::Illegal,
+        };
+        let msg = format!("expected next token to be {}, got {} instead", t, token);
+        self.errors.push(msg);
+    }
+
+    pub fn Errors(&self) -> &Vec<String> {
+        &self.errors
     }
 }
 
@@ -118,6 +134,10 @@ mod tests {
         let program = parser.parse_program();
         assert_eq!(3, program.statements.len());
 
+        for error in parser.Errors() {
+            println!("{}", error);
+            assert_eq!(error, "");
+        }
         let tests = ["x", "y", "foobar"];
 
         let mut statements = program.statements.into_iter();

@@ -219,7 +219,7 @@ if (5 < 10) {
 
         for test in tests {
             let tok = l.next_token();
-            println!("expected {:?}, lexed {:?} ", test, tok);
+            //println!("expected {:?}, lexed {:?} ", test, tok);
             assert_eq!(tok, test);
         }
     }
