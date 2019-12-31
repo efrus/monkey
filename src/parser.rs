@@ -120,6 +120,19 @@ impl<'a> Parser<'a> {
         }
     }
 
+    fn parse_integer_literal(&self) -> Expression {
+        match &self.current_token {
+            Some(Token::Int(int_string)) => {
+                if let Ok(int) = int_string.parse::<i64>() {
+                    Expression::IntegerLiteral(int)
+                } else {
+                    Expression::None
+                }
+            }
+            _ => Expression::None,
+        }
+    }
+
     fn current_token_is(&self, t: &Token) -> bool {
         match &self.current_token {
             Some(token) if token == t => true,
@@ -159,6 +172,7 @@ impl<'a> Parser<'a> {
     pub fn prefix_parse(&self) -> Expression {
         match &self.current_token {
             Some(Token::Ident(_)) => self.parse_identifier(),
+            Some(Token::Int(_)) => self.parse_integer_literal(),
             _ => Expression::None,
         }
     }

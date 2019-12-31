@@ -13,6 +13,7 @@ pub enum Statement {
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum Expression {
     Ident(Identifier),
+    IntegerLiteral(i64),
     None,
 }
 
