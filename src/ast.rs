@@ -1,5 +1,3 @@
-use crate::token::Token;
-
 pub type Identifier = String;
 
 #[derive(Debug, Clone, PartialEq, Eq)]

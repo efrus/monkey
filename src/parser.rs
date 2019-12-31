@@ -108,7 +108,7 @@ impl<'a> Parser<'a> {
         self.errors.push(msg);
     }
 
-    pub fn Errors(&self) -> &Vec<String> {
+    pub fn errors(&self) -> &Vec<String> {
         &self.errors
     }
 }
@@ -132,12 +132,12 @@ mod tests {
         let mut parser = Parser::new(lexer);
 
         let program = parser.parse_program();
-        assert_eq!(3, program.statements.len());
 
-        for error in parser.Errors() {
+        for error in parser.errors() {
             println!("{}", error);
-            assert_eq!(error, "");
         }
+        assert_eq!(parser.errors().len(), 0);
+        assert_eq!(3, program.statements.len());
         let tests = ["x", "y", "foobar"];
 
         let mut statements = program.statements.into_iter();
