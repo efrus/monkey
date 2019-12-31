@@ -1,6 +1,9 @@
 mod ast;
+mod ast_test;
 mod lexer;
+mod lexer_test;
 mod parser;
+mod parser_test;
 mod repl;
 mod token;
 

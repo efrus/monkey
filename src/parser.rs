@@ -51,6 +51,7 @@ impl<'a> Parser<'a> {
         if let Some(token) = &self.current_token {
             let statement = match token {
                 Token::Let => self.parse_let_statement(),
+                Token::Return => self.parse_return_statement(),
                 _ => None,
             };
             return statement;
@@ -74,6 +75,17 @@ impl<'a> Parser<'a> {
             return Some(Statement::Let(identifier, expression));
         }
         None
+    }
+
+    fn parse_return_statement(&mut self) -> Option<Statement> {
+        self.next_token();
+
+        while !self.current_token_is(&Token::Semicolon) {
+            self.next_token();
+        }
+
+        let expression = Expression::None;
+        return Some(Statement::Return(expression));
     }
 
     fn current_token_is(&self, t: &Token) -> bool {
@@ -110,49 +122,5 @@ impl<'a> Parser<'a> {
 
     pub fn errors(&self) -> &Vec<String> {
         &self.errors
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use crate::ast::{Expression, Identifier, Program, Statement};
-    use crate::lexer::Lexer;
-    use crate::parser::Parser;
-    //use crate::token::Token;
-
-    #[test]
-    fn test_let_statements() {
-        let input = "
-            let x = 5;
-            let y = 10;
-            let foobar = 838383;
-        ";
-
-        let lexer = Lexer::new(input);
-        let mut parser = Parser::new(lexer);
-
-        let program = parser.parse_program();
-
-        for error in parser.errors() {
-            println!("{}", error);
-        }
-        assert_eq!(parser.errors().len(), 0);
-        assert_eq!(3, program.statements.len());
-        let tests = ["x", "y", "foobar"];
-
-        let mut statements = program.statements.into_iter();
-        for test in tests.iter() {
-            let s = statements.next().unwrap();
-            test_let_statement(s, test);
-        }
-    }
-
-    fn test_let_statement(s: Statement, name: &str) {
-        match s {
-            Statement::Let(ident, _) => {
-                assert_eq!(ident, name);
-            }
-            _ => assert!(false),
-        };
     }
 }
