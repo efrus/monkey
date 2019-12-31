@@ -2,6 +2,16 @@ use crate::ast::{Expression, Identifier, Program, Statement};
 use crate::lexer::Lexer;
 use crate::token::Token;
 
+pub enum Precedence {
+    LOWEST,
+    EQUALS,      // ==
+    LESSGREATER, // > or <
+    SUM,         // +
+    PRODUCT,     // *
+    PREFIX,      // -X or !X
+    CALL,        // myFunction(X)
+}
+
 pub struct Parser<'a> {
     lexer: Lexer<'a>,
     current_token: Option<Token>,
@@ -52,7 +62,7 @@ impl<'a> Parser<'a> {
             let statement = match token {
                 Token::Let => self.parse_let_statement(),
                 Token::Return => self.parse_return_statement(),
-                _ => None,
+                _ => self.parse_expression_statement(),
             };
             return statement;
         }
@@ -86,6 +96,28 @@ impl<'a> Parser<'a> {
 
         let expression = Expression::None;
         return Some(Statement::Return(expression));
+    }
+
+    fn parse_expression_statement(&mut self) -> Option<Statement> {
+        let expr = self.parse_expression(Precedence::LOWEST);
+        let statement = Statement::Expression(expr);
+
+        if self.peek_token_is(&Token::Semicolon) {
+            self.next_token();
+        }
+
+        return Some(statement);
+    }
+
+    fn parse_expression(&mut self, precedence: Precedence) -> Expression {
+        self.prefix_parse()
+    }
+
+    fn parse_identifier(&self) -> Expression {
+        match &self.current_token {
+            Some(Token::Ident(ident)) => Expression::Ident(ident.to_string()),
+            _ => Expression::None,
+        }
     }
 
     fn current_token_is(&self, t: &Token) -> bool {
@@ -122,5 +154,16 @@ impl<'a> Parser<'a> {
 
     pub fn errors(&self) -> &Vec<String> {
         &self.errors
+    }
+
+    pub fn prefix_parse(&self) -> Expression {
+        match &self.current_token {
+            Some(Token::Ident(_)) => self.parse_identifier(),
+            _ => Expression::None,
+        }
+    }
+
+    pub fn infix_parse(&self, left_expression: Expression) -> Expression {
+        Expression::None
     }
 }

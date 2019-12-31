@@ -72,4 +72,32 @@ mod tests {
             }
         }
     }
+
+    #[test]
+    fn test_identifier_expression() {
+        let input = "foobar";
+
+        let lexer = Lexer::new(input);
+        let mut parser = Parser::new(lexer);
+
+        let program = parser.parse_program();
+        check_parser_errors(&parser);
+        assert_eq!(program.statements.len(), 1);
+
+        if let Some(statement) = program.statements.into_iter().next() {
+            match statement {
+                Statement::Expression(expr) => match expr {
+                    Expression::Ident(ident) if ident == "foobar" => (),
+                    _ => {
+                        println!("Expected ident, got something else.");
+                        assert!(false);
+                    }
+                },
+                _ => {
+                    println!("Expected Statement expr, got something else.");
+                    assert!(false);
+                }
+            }
+        }
+    }
 }
