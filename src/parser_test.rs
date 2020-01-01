@@ -128,4 +128,54 @@ mod tests {
             }
         }
     }
+
+    #[test]
+    fn test_parsing_prefix_expressions() {
+        let tests = vec![("!5;", "!", 5), ("-15;", "-", 15)];
+
+        for test in tests {
+            let lexer = Lexer::new(test.0);
+            let mut parser = Parser::new(lexer);
+            let program = parser.parse_program();
+            check_parser_errors(&parser);
+            assert_eq!(program.statements.len(), 1);
+
+            if let Some(statement) = program.statements.into_iter().next() {
+                match statement {
+                    Statement::Expression(expr) => match expr {
+                        Expression::Prefix(operator, _right) => {
+                            if operator != test.1 {
+                                println!("operator is not {}, got {}", test.1, operator);
+                                assert!(false);
+                            }
+                        }
+                        _ => {
+                            println!("Not a prefix expression");
+                            assert!(false);
+                        }
+                    },
+                    _ => {
+                        println!("Expected Statement expr, got something else.");
+                        assert!(false);
+                    }
+                }
+            }
+        }
+    }
+
+    fn test_integer_literal(expression: Expression, value: i64) -> bool {
+        match expression {
+            Expression::IntegerLiteral(i) => {
+                if i != value {
+                    println!("integer value not {}, got {} ", value, i);
+                    return false;
+                }
+            }
+            _ => {
+                println!("Expression not integer literal");
+                return false;
+            }
+        };
+        return true;
+    }
 }

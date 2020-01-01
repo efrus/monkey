@@ -14,6 +14,7 @@ pub enum Statement {
 pub enum Expression {
     Ident(Identifier),
     IntegerLiteral(i64),
+    Prefix(Identifier, Box<Expression>),
     None,
 }
 
@@ -48,6 +49,8 @@ impl fmt::Display for Expression {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let output = match &self {
             Expression::Ident(ident) => ident.to_string(),
+            Expression::IntegerLiteral(int) => int.to_string(),
+            Expression::Prefix(operator, expr) => format!("({}{})", operator, expr),
             _ => String::from(""),
         };
         write!(f, "{}", output)

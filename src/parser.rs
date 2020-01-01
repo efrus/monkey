@@ -110,7 +110,13 @@ impl<'a> Parser<'a> {
     }
 
     fn parse_expression(&mut self, precedence: Precedence) -> Expression {
-        self.prefix_parse()
+        let expr = self.prefix_parse();
+        if expr == Expression::None {
+            if let Some(token) = &self.current_token {
+                self.no_prefix_parse_error(token.clone());
+            }
+        }
+        expr
     }
 
     fn parse_identifier(&self) -> Expression {
@@ -130,6 +136,21 @@ impl<'a> Parser<'a> {
                 }
             }
             _ => Expression::None,
+        }
+    }
+
+    fn parse_prefix_expression(&mut self) -> Expression {
+        let operator = self.get_token();
+        self.next_token();
+        let right = self.parse_expression(Precedence::PREFIX);
+        return Expression::Prefix(operator.to_string(), Box::new(right));
+    }
+
+    //convenience method to retrieve token
+    fn get_token(&self) -> Token {
+        match &self.current_token {
+            Some(token) => token.clone(),
+            None => Token::Illegal,
         }
     }
 
@@ -169,12 +190,19 @@ impl<'a> Parser<'a> {
         &self.errors
     }
 
-    pub fn prefix_parse(&self) -> Expression {
+    pub fn prefix_parse(&mut self) -> Expression {
         match &self.current_token {
             Some(Token::Ident(_)) => self.parse_identifier(),
             Some(Token::Int(_)) => self.parse_integer_literal(),
+            Some(Token::Bang) => self.parse_prefix_expression(),
+            Some(Token::Minus) => self.parse_prefix_expression(),
             _ => Expression::None,
         }
+    }
+
+    fn no_prefix_parse_error(&mut self, token: Token) {
+        let msg = format!("no prefix parse function for {} found", token);
+        self.errors.push(msg);
     }
 
     pub fn infix_parse(&self, left_expression: Expression) -> Expression {
