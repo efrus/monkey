@@ -143,9 +143,14 @@ mod tests {
             if let Some(statement) = program.statements.into_iter().next() {
                 match statement {
                     Statement::Expression(expr) => match expr {
-                        Expression::Prefix(operator, _right) => {
+                        Expression::Prefix(operator, right) => {
                             if operator != test.1 {
                                 println!("operator is not {}, got {}", test.1, operator);
+                                assert!(false);
+                            }
+
+                            if !test_integer_literal(*right, test.2) {
+                                println!("right not equal to integer test");
                                 assert!(false);
                             }
                         }
@@ -168,14 +173,15 @@ mod tests {
             Expression::IntegerLiteral(i) => {
                 if i != value {
                     println!("integer value not {}, got {} ", value, i);
-                    return false;
+                    false
+                } else {
+                    true
                 }
             }
             _ => {
                 println!("Expression not integer literal");
-                return false;
+                false
             }
-        };
-        return true;
+        }
     }
 }
