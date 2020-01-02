@@ -1,9 +1,6 @@
 #[cfg(test)]
 mod tests {
-    use crate::ast::{Expression, Identifier, Program, Statement};
-    use crate::lexer::Lexer;
-    use crate::token::Token;
-
+    use crate::ast::{Expression, Program, Statement};
     #[test]
     fn test_strings() {
         let output = "let myVar = anotherVar;";

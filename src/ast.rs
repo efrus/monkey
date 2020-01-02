@@ -2,7 +2,7 @@ use std::fmt;
 
 pub type Identifier = String;
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum Statement {
     Let(Identifier, Expression),
     Return(Expression),
@@ -10,15 +10,16 @@ pub enum Statement {
     None,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, PartialEq, Clone)]
 pub enum Expression {
     Ident(Identifier),
     IntegerLiteral(i64),
     Prefix(Identifier, Box<Expression>),
+    Infix(Box<Expression>, Identifier, Box<Expression>),
     None,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct Program {
     pub statements: Vec<Statement>,
 }
@@ -39,7 +40,7 @@ impl fmt::Display for Statement {
             Statement::Let(ident, expr) => format!("let {} = {};", ident, expr),
             Statement::Return(expr) => format!("return {};", expr),
             Statement::Expression(expr) => expr.to_string(),
-            _ => String::from(""),
+            Statement::None => String::from(""),
         };
         write!(f, "{}", output)
     }
@@ -51,7 +52,10 @@ impl fmt::Display for Expression {
             Expression::Ident(ident) => ident.to_string(),
             Expression::IntegerLiteral(int) => int.to_string(),
             Expression::Prefix(operator, expr) => format!("({}{})", operator, expr),
-            _ => String::from(""),
+            Expression::Infix(left, operator, right) => {
+                format!("({} {} {})", left, operator, right)
+            }
+            Expression::None => String::from(""),
         };
         write!(f, "{}", output)
     }

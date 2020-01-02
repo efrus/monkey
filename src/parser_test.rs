@@ -1,6 +1,6 @@
 #[cfg(test)]
 mod tests {
-    use crate::ast::{Expression, Identifier, Program, Statement};
+    use crate::ast::{Expression, Statement};
     use crate::lexer::Lexer;
     use crate::parser::Parser;
     //use crate::token::Token;
@@ -181,6 +181,58 @@ mod tests {
             _ => {
                 println!("Expression not integer literal");
                 false
+            }
+        }
+    }
+
+    #[test]
+    fn test_parsing_infix_expressions() {
+        let tests = vec![
+            ("5 + 5;", 5, "+", 5),
+            //("5 - 5;", 5, "-", 5),
+            //("5 * 5;", 5, "*", 5),
+            //("5 / 5;", 5, "/", 5),
+            //("5 > 5;", 5, ">", 5),
+            //("5 < 5;", 5, "<", 5),
+            //("5 == 5;", 5, "==", 5),
+            //("5 != 5;", 5, "!=", 5),
+        ];
+        for test in tests {
+            let lexer = Lexer::new(test.0);
+            let mut parser = Parser::new(lexer);
+            let program = parser.parse_program();
+            check_parser_errors(&parser);
+            assert_eq!(program.statements.len(), 1);
+
+            if let Some(statement) = program.statements.into_iter().next() {
+                match statement {
+                    Statement::Expression(expr) => match expr {
+                        Expression::Infix(left, operator, right) => {
+                            if !test_integer_literal(*left, test.1) {
+                                println!("left not equal to integer test");
+                                assert!(false);
+                            }
+
+                            if operator != test.2 {
+                                println!("operator is not {}, got {}", test.1, operator);
+                                assert!(false);
+                            }
+
+                            if !test_integer_literal(*right, test.3) {
+                                println!("right not equal to integer test");
+                                assert!(false);
+                            }
+                        }
+                        _ => {
+                            println!("Not a prefix expression");
+                            assert!(false);
+                        }
+                    },
+                    _ => {
+                        println!("Expected Statement expr, got something else.");
+                        assert!(false);
+                    }
+                }
             }
         }
     }

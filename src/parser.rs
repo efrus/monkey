@@ -1,7 +1,8 @@
-use crate::ast::{Expression, Identifier, Program, Statement};
+use crate::ast::{Expression, Program, Statement};
 use crate::lexer::Lexer;
 use crate::token::Token;
 
+#[derive(Debug, Clone, PartialEq, PartialOrd)]
 pub enum Precedence {
     LOWEST,
     EQUALS,      // ==
@@ -10,6 +11,20 @@ pub enum Precedence {
     PRODUCT,     // *
     PREFIX,      // -X or !X
     CALL,        // myFunction(X)
+}
+
+fn precedences(token: Token) -> Precedence {
+    match token {
+        Token::Eq => Precedence::EQUALS,
+        Token::NotEq => Precedence::EQUALS,
+        Token::Lt => Precedence::LESSGREATER,
+        Token::Gt => Precedence::LESSGREATER,
+        Token::Plus => Precedence::SUM,
+        Token::Minus => Precedence::SUM,
+        Token::Slash => Precedence::PRODUCT,
+        Token::Asterisk => Precedence::PRODUCT,
+        _ => Precedence::LOWEST,
+    }
 }
 
 pub struct Parser<'a> {
@@ -110,13 +125,27 @@ impl<'a> Parser<'a> {
     }
 
     fn parse_expression(&mut self, precedence: Precedence) -> Expression {
-        let expr = self.prefix_parse();
-        if expr == Expression::None {
-            if let Some(token) = &self.current_token {
-                self.no_prefix_parse_error(token.clone());
-            }
+        let prefix = self.prefix_parse();
+        //println!("Prefix:{}", prefix);
+        if prefix == Expression::None {
+            println!("prefix == Expression::None");
+            let token = &self.get_current_token();
+            self.no_prefix_parse_error(token.clone());
+            return Expression::None;
         }
-        expr
+        let mut peek_precedence = self.peek_precedence();
+        let mut peek_token_is_semi_colon = self.peek_token_is(&Token::Semicolon);
+        let mut left_expr = prefix.clone();
+        while !peek_token_is_semi_colon && precedence < peek_precedence {
+            if left_expr == Expression::None {
+                return left_expr;
+            }
+            self.next_token();
+            left_expr = self.infix_parse(Box::new(left_expr));
+            peek_precedence = self.peek_precedence();
+            peek_token_is_semi_colon = self.peek_token_is(&Token::Semicolon);
+        }
+        left_expr
     }
 
     fn parse_identifier(&self) -> Expression {
@@ -140,15 +169,31 @@ impl<'a> Parser<'a> {
     }
 
     fn parse_prefix_expression(&mut self) -> Expression {
-        let operator = self.get_token();
+        let operator = self.get_current_token().to_string();
         self.next_token();
         let right = self.parse_expression(Precedence::PREFIX);
-        return Expression::Prefix(operator.to_string(), Box::new(right));
+        return Expression::Prefix(operator, Box::new(right));
+    }
+
+    fn parse_infix_expression(&mut self, left: Box<Expression>) -> Expression {
+        let operator = self.get_current_token().to_string();
+        let precedence = self.current_precedence();
+        self.next_token();
+        let right = self.parse_expression(precedence);
+        return Expression::Infix(left, operator, Box::new(right));
     }
 
     //convenience method to retrieve token
-    fn get_token(&self) -> Token {
+    fn get_current_token(&self) -> Token {
         match &self.current_token {
+            Some(token) => token.clone(),
+            None => Token::Illegal,
+        }
+    }
+
+    //convenience method to retrieve token
+    fn get_peek_token(&self) -> Token {
+        match &self.peek_token {
             Some(token) => token.clone(),
             None => Token::Illegal,
         }
@@ -205,7 +250,25 @@ impl<'a> Parser<'a> {
         self.errors.push(msg);
     }
 
-    pub fn infix_parse(&self, left_expression: Expression) -> Expression {
-        Expression::None
+    pub fn infix_parse(&mut self, left_expression: Box<Expression>) -> Expression {
+        match &self.current_token {
+            Some(Token::Plus) => self.parse_infix_expression(left_expression),
+            Some(Token::Minus) => self.parse_infix_expression(left_expression),
+            Some(Token::Slash) => self.parse_infix_expression(left_expression),
+            Some(Token::Asterisk) => self.parse_infix_expression(left_expression),
+            Some(Token::Eq) => self.parse_infix_expression(left_expression),
+            Some(Token::NotEq) => self.parse_infix_expression(left_expression),
+            Some(Token::Lt) => self.parse_infix_expression(left_expression),
+            Some(Token::Gt) => self.parse_infix_expression(left_expression),
+            _ => Expression::None,
+        }
+    }
+
+    fn peek_precedence(&self) -> Precedence {
+        precedences(self.get_peek_token())
+    }
+
+    fn current_precedence(&self) -> Precedence {
+        precedences(self.get_current_token())
     }
 }
