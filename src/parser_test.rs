@@ -133,8 +133,8 @@ mod tests {
     fn test_parsing_prefix_expressions() {
         let tests = vec![("!5;", "!", 5), ("-15;", "-", 15)];
 
-        for test in tests {
-            let lexer = Lexer::new(test.0);
+        for (test_expr, test_operator, test_int) in tests {
+            let lexer = Lexer::new(test_expr);
             let mut parser = Parser::new(lexer);
             let program = parser.parse_program();
             check_parser_errors(&parser);
@@ -144,12 +144,12 @@ mod tests {
                 match statement {
                     Statement::Expression(expr) => match expr {
                         Expression::Prefix(operator, right) => {
-                            if operator != test.1 {
-                                println!("operator is not {}, got {}", test.1, operator);
+                            if operator != test_operator {
+                                println!("operator is not {}, got {}", test_operator, operator);
                                 assert!(false);
                             }
 
-                            if !test_integer_literal(*right, test.2) {
+                            if !test_integer_literal(*right, test_int) {
                                 println!("right not equal to integer test");
                                 assert!(false);
                             }
@@ -189,16 +189,16 @@ mod tests {
     fn test_parsing_infix_expressions() {
         let tests = vec![
             ("5 + 5;", 5, "+", 5),
-            //("5 - 5;", 5, "-", 5),
-            //("5 * 5;", 5, "*", 5),
-            //("5 / 5;", 5, "/", 5),
-            //("5 > 5;", 5, ">", 5),
-            //("5 < 5;", 5, "<", 5),
-            //("5 == 5;", 5, "==", 5),
-            //("5 != 5;", 5, "!=", 5),
+            ("5 - 5;", 5, "-", 5),
+            ("5 * 5;", 5, "*", 5),
+            ("5 / 5;", 5, "/", 5),
+            ("5 > 5;", 5, ">", 5),
+            ("5 < 5;", 5, "<", 5),
+            ("5 == 5;", 5, "==", 5),
+            ("5 != 5;", 5, "!=", 5),
         ];
-        for test in tests {
-            let lexer = Lexer::new(test.0);
+        for (test_expr, test_left, test_operator, test_right) in tests {
+            let lexer = Lexer::new(test_expr);
             let mut parser = Parser::new(lexer);
             let program = parser.parse_program();
             check_parser_errors(&parser);
@@ -208,17 +208,17 @@ mod tests {
                 match statement {
                     Statement::Expression(expr) => match expr {
                         Expression::Infix(left, operator, right) => {
-                            if !test_integer_literal(*left, test.1) {
+                            if !test_integer_literal(*left, test_left) {
                                 println!("left not equal to integer test");
                                 assert!(false);
                             }
 
-                            if operator != test.2 {
-                                println!("operator is not {}, got {}", test.1, operator);
+                            if operator != test_operator {
+                                println!("operator is not {}, got {}", test_operator, operator);
                                 assert!(false);
                             }
 
-                            if !test_integer_literal(*right, test.3) {
+                            if !test_integer_literal(*right, test_right) {
                                 println!("right not equal to integer test");
                                 assert!(false);
                             }
@@ -234,6 +234,80 @@ mod tests {
                     }
                 }
             }
+        }
+    }
+
+    #[test]
+    fn test_operator_precedence() {
+        let tests = vec![
+            ("-a * b", "((-a) * b)"),
+            ("!-a", "(!(-a))"),
+            ("a + b + c", "((a + b) + c)"),
+            ("a + b - c", "((a + b) - c)"),
+            ("a * b * c", "((a * b) * c)"),
+            ("a * b / c", "((a * b) / c)"),
+            ("a + b / c", "(a + (b / c))"),
+            ("a + b * c + d / e - f", "(((a + (b * c)) + (d / e)) - f)"),
+            ("3 + 4; -5 * 5", "(3 + 4)((-5) * 5)"),
+            ("5 > 4 == 3 < 4", "((5 > 4) == (3 < 4))"),
+            ("5 < 4 != 3 > 4", "((5 < 4) != (3 > 4))"),
+            (
+                "3 + 4 * 5 == 3 * 1 + 4 * 5",
+                "((3 + (4 * 5)) == ((3 * 1) + (4 * 5)))",
+            ),
+            /*("true", "true"),
+            ("false", "false"),
+            ("3 > 5 == false", "((3 > 5) == false)"),
+            ("3 < 5 == true", "((3 < 5) == true)"),
+            ("1 + (2 + 3) + 4", "((1 + (2 + 3)) + 4)"),
+            ("(5 + 5) * 2", "((5 + 5) * 2)"),
+            ("2 / (5 + 5)", "(2 / (5 + 5))"),
+            ("-(5 + 5)", "(-(5 + 5))"),
+            ("!(true == true)", "(!(true == true))"),
+            ("if (x < y) { x }", "if (x < y) { x; }"),
+            (
+                "if (x < y) { x } else { y }",
+                "if (x < y) { x; } else { y; }",
+            ),
+            ("return x", "return x"),
+            ("return x return 2 * 3", "return x;return (2 * 3)"),
+            ("return 2 * 4 + 5;", "return ((2 * 4) + 5)"),
+            ("fn() { 3 * 9; }", "fn() { (3 * 9); }"),
+            ("fn(x) { x * 9; }", "fn(x) { (x * 9); }"),
+            ("fn(x, y) { x + y; }", "fn(x, y) { (x + y); }"),
+            ("call()", "call()"),
+            ("add(1, 2 * 3, 4 + 5)", "add(1, (2 * 3), (4 + 5))"),
+            ("a + add(b * c) + d", "((a + add((b * c))) + d)"),
+            (
+                "add(a, b, 1, 2 * 3, 4 + 5, add(6, 7 * 8))",
+                "add(a, b, 1, (2 * 3), (4 + 5), add(6, (7 * 8)))",
+            ),
+            (
+                "add(a + b + c * d / f + g)",
+                "add((((a + b) + ((c * d) / f)) + g))",
+            ),
+            ("fn(x, y) { x + y; }(3, 4)", "fn(x, y) { (x + y); }(3, 4)"),
+            ("let x = 3", "let x = 3;"),
+            ("let x = 3 + f * 8;", "let x = (3 + (f * 8))"),
+            ("\"hello world\"", "\"hello world\""),
+            ("let s = \"hello world\"", "let s = \"hello world\""),
+            (
+                "a * [1, 2, 3, 4][b * c] * d",
+                "((a * ([1, 2, 3, 4][(b * c)])) * d)",
+            ),
+            (
+                "add(a * b[2], b[1], 2 * [1, 2][1])",
+                "add((a * (b[2])), (b[1]), (2 * ([1, 2][1])))",
+            ),*/
+        ];
+        for (input, expected) in tests {
+            let lexer = Lexer::new(input);
+            let mut parser = Parser::new(lexer);
+            let program = parser.parse_program();
+            check_parser_errors(&parser);
+
+            let actual = program.to_string();
+            assert_eq!(actual, expected);
         }
     }
 }
