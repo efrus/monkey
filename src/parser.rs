@@ -187,6 +187,15 @@ impl<'a> Parser<'a> {
         Expression::Boolean(self.current_token_is(&Token::True))
     }
 
+    fn parse_grouped_expression(&mut self) -> Expression {
+        self.next_token();
+        let exp = self.parse_expression(Precedence::LOWEST);
+        if !self.expect_peek(Token::RParen) {
+            return Expression::None;
+        }
+        exp
+    }
+
     //convenience method to retrieve token
     fn get_current_token(&self) -> Token {
         match &self.current_token {
@@ -247,6 +256,7 @@ impl<'a> Parser<'a> {
             Some(Token::Minus) => self.parse_prefix_expression(),
             Some(Token::True) => self.parse_boolean(),
             Some(Token::False) => self.parse_boolean(),
+            Some(Token::LParen) => self.parse_grouped_expression(),
             _ => Expression::None,
         }
     }

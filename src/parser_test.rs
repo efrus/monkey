@@ -284,9 +284,6 @@ mod tests {
             ("5 < 5;", 5, "<", 5),
             ("5 == 5;", 5, "==", 5),
             ("5 != 5;", 5, "!=", 5),
-            //("true == true", true, "==", true),
-            //("true != false", true, "!=", false),
-            //("false == false", false, "==", false),
         ];
         for (test_expr, test_left, test_operator, test_right) in tests {
             let lexer = Lexer::new(test_expr);
@@ -397,12 +394,12 @@ mod tests {
             ("false", "false"),
             ("3 > 5 == false", "((3 > 5) == false)"),
             ("3 < 5 == true", "((3 < 5) == true)"),
-            /*("1 + (2 + 3) + 4", "((1 + (2 + 3)) + 4)"),
+            ("1 + (2 + 3) + 4", "((1 + (2 + 3)) + 4)"),
             ("(5 + 5) * 2", "((5 + 5) * 2)"),
             ("2 / (5 + 5)", "(2 / (5 + 5))"),
             ("-(5 + 5)", "(-(5 + 5))"),
             ("!(true == true)", "(!(true == true))"),
-            ("if (x < y) { x }", "if (x < y) { x; }"),
+            /*("if (x < y) { x }", "if (x < y) { x; }"),
             (
                 "if (x < y) { x } else { y }",
                 "if (x < y) { x; } else { y; }",
