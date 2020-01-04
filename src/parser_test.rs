@@ -158,7 +158,7 @@ mod tests {
     }
 
     #[test]
-    fn test_parsing_prefix_expressions() {
+    fn test_parsing_prefix_expressions_int() {
         let tests = vec![("!5;", "!", 5), ("-15;", "-", 15)];
 
         for (test_expr, test_operator, test_int) in tests {
@@ -196,6 +196,45 @@ mod tests {
         }
     }
 
+    #[test]
+    fn test_parsing_prefix_expressions_bool() {
+        let tests = vec![("!true", "!", true), ("!false", "!", false)];
+
+        for (test_expr, test_operator, test_bool) in tests {
+            let lexer = Lexer::new(test_expr);
+            let mut parser = Parser::new(lexer);
+            let program = parser.parse_program();
+            check_parser_errors(&parser);
+            assert_eq!(program.statements.len(), 1);
+
+            if let Some(statement) = program.statements.into_iter().next() {
+                match statement {
+                    Statement::Expression(expr) => match expr {
+                        Expression::Prefix(operator, right) => {
+                            if operator != test_operator {
+                                println!("operator is not {}, got {}", test_operator, operator);
+                                assert!(false);
+                            }
+
+                            if !test_bool_literal(*right, test_bool) {
+                                println!("right not equal to integer test");
+                                assert!(false);
+                            }
+                        }
+                        _ => {
+                            println!("Not a prefix expression");
+                            assert!(false);
+                        }
+                    },
+                    _ => {
+                        println!("Expected Statement expr, got something else.");
+                        assert!(false);
+                    }
+                }
+            }
+        }
+    }
+
     fn test_integer_literal(expression: Expression, value: i64) -> bool {
         match expression {
             Expression::IntegerLiteral(i) if i == value => true,
@@ -205,6 +244,16 @@ mod tests {
             }
             _ => {
                 println!("Expression not integer literal");
+                false
+            }
+        }
+    }
+
+    fn test_bool_literal(expression: Expression, value: bool) -> bool {
+        match expression {
+            Expression::Boolean(b) if b == value => true,
+            _ => {
+                println!("bool literal not correct");
                 false
             }
         }
@@ -235,6 +284,9 @@ mod tests {
             ("5 < 5;", 5, "<", 5),
             ("5 == 5;", 5, "==", 5),
             ("5 != 5;", 5, "!=", 5),
+            //("true == true", true, "==", true),
+            //("true != false", true, "!=", false),
+            //("false == false", false, "==", false),
         ];
         for (test_expr, test_left, test_operator, test_right) in tests {
             let lexer = Lexer::new(test_expr);
@@ -277,6 +329,53 @@ mod tests {
     }
 
     #[test]
+    fn test_parsing_infix_expressions_bool() {
+        let tests = vec![
+            ("true == true", true, "==", true),
+            ("true != false", true, "!=", false),
+            ("false == false", false, "==", false),
+        ];
+        for (test_expr, test_left, test_operator, test_right) in tests {
+            let lexer = Lexer::new(test_expr);
+            let mut parser = Parser::new(lexer);
+            let program = parser.parse_program();
+            check_parser_errors(&parser);
+            assert_eq!(program.statements.len(), 1);
+
+            if let Some(statement) = program.statements.into_iter().next() {
+                match statement {
+                    Statement::Expression(expr) => match expr {
+                        Expression::Infix(left, operator, right) => {
+                            if !test_bool_literal(*left, test_left) {
+                                println!("left not equal to bool test");
+                                assert!(false);
+                            }
+
+                            if operator != test_operator {
+                                println!("operator is not {}, got {}", test_operator, operator);
+                                assert!(false);
+                            }
+
+                            if !test_bool_literal(*right, test_right) {
+                                println!("right not equal to bool test");
+                                assert!(false);
+                            }
+                        }
+                        _ => {
+                            println!("Not a prefix expression");
+                            assert!(false);
+                        }
+                    },
+                    _ => {
+                        println!("Expected Statement expr, got something else.");
+                        assert!(false);
+                    }
+                }
+            }
+        }
+    }
+
+    #[test]
     fn test_operator_precedence() {
         let tests = vec![
             ("-a * b", "((-a) * b)"),
@@ -294,11 +393,11 @@ mod tests {
                 "3 + 4 * 5 == 3 * 1 + 4 * 5",
                 "((3 + (4 * 5)) == ((3 * 1) + (4 * 5)))",
             ),
-            /*("true", "true"),
+            ("true", "true"),
             ("false", "false"),
             ("3 > 5 == false", "((3 > 5) == false)"),
             ("3 < 5 == true", "((3 < 5) == true)"),
-            ("1 + (2 + 3) + 4", "((1 + (2 + 3)) + 4)"),
+            /*("1 + (2 + 3) + 4", "((1 + (2 + 3)) + 4)"),
             ("(5 + 5) * 2", "((5 + 5) * 2)"),
             ("2 / (5 + 5)", "(2 / (5 + 5))"),
             ("-(5 + 5)", "(-(5 + 5))"),
