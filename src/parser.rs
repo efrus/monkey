@@ -184,11 +184,7 @@ impl<'a> Parser<'a> {
     }
 
     fn parse_boolean(&mut self) -> Expression {
-        match &self.current_token {
-            Some(Token::True) => Expression::Boolean(true),
-            Some(Token::False) => Expression::Boolean(false),
-            _ => Expression::None,
-        }
+        Expression::Boolean(self.current_token_is(&Token::True))
     }
 
     //convenience method to retrieve token
