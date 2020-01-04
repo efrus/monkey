@@ -16,6 +16,7 @@ pub enum Expression {
     IntegerLiteral(i64),
     Prefix(Identifier, Box<Expression>),
     Infix(Box<Expression>, Identifier, Box<Expression>),
+    Boolean(bool),
     None,
 }
 
@@ -55,6 +56,7 @@ impl fmt::Display for Expression {
             Expression::Infix(left, operator, right) => {
                 format!("({} {} {})", left, operator, right)
             }
+            Expression::Boolean(b) => format!("{}", b.to_string()),
             Expression::None => String::from(""),
         };
         write!(f, "{}", output)

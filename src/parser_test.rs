@@ -130,6 +130,34 @@ mod tests {
     }
 
     #[test]
+    fn test_boolean_expression() {
+        let input = "false;";
+
+        let lexer = Lexer::new(input);
+        let mut parser = Parser::new(lexer);
+
+        let program = parser.parse_program();
+        check_parser_errors(&parser);
+        assert_eq!(program.statements.len(), 1);
+
+        if let Some(statement) = program.statements.into_iter().next() {
+            match statement {
+                Statement::Expression(expr) => match expr {
+                    Expression::Boolean(b) if b == false => (),
+                    _ => {
+                        println!("Expected false, got something else.");
+                        assert!(false);
+                    }
+                },
+                _ => {
+                    println!("Expected Statement expr, got something else.");
+                    assert!(false);
+                }
+            }
+        }
+    }
+
+    #[test]
     fn test_parsing_prefix_expressions() {
         let tests = vec![("!5;", "!", 5), ("-15;", "-", 15)];
 
@@ -170,16 +198,27 @@ mod tests {
 
     fn test_integer_literal(expression: Expression, value: i64) -> bool {
         match expression {
+            Expression::IntegerLiteral(i) if i == value => true,
             Expression::IntegerLiteral(i) => {
-                if i != value {
-                    println!("integer value not {}, got {} ", value, i);
-                    false
-                } else {
-                    true
-                }
+                println!("integer value not {}, got {} ", value, i);
+                false
             }
             _ => {
                 println!("Expression not integer literal");
+                false
+            }
+        }
+    }
+
+    fn test_identifier(expression: Expression, value: String) -> bool {
+        match expression {
+            Expression::Ident(s) if s == value => true,
+            Expression::Ident(s) => {
+                println!("identifier value not {}, got {}", value, s);
+                false
+            }
+            _ => {
+                println!("Expression not identifier");
                 false
             }
         }

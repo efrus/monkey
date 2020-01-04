@@ -172,7 +172,7 @@ impl<'a> Parser<'a> {
         let operator = self.get_current_token().to_string();
         self.next_token();
         let right = self.parse_expression(Precedence::PREFIX);
-        return Expression::Prefix(operator, Box::new(right));
+        Expression::Prefix(operator, Box::new(right))
     }
 
     fn parse_infix_expression(&mut self, left: Box<Expression>) -> Expression {
@@ -180,7 +180,15 @@ impl<'a> Parser<'a> {
         let precedence = self.current_precedence();
         self.next_token();
         let right = self.parse_expression(precedence);
-        return Expression::Infix(left, operator, Box::new(right));
+        Expression::Infix(left, operator, Box::new(right))
+    }
+
+    fn parse_boolean(&mut self) -> Expression {
+        match &self.current_token {
+            Some(Token::True) => Expression::Boolean(true),
+            Some(Token::False) => Expression::Boolean(false),
+            _ => Expression::None,
+        }
     }
 
     //convenience method to retrieve token
@@ -241,6 +249,8 @@ impl<'a> Parser<'a> {
             Some(Token::Int(_)) => self.parse_integer_literal(),
             Some(Token::Bang) => self.parse_prefix_expression(),
             Some(Token::Minus) => self.parse_prefix_expression(),
+            Some(Token::True) => self.parse_boolean(),
+            Some(Token::False) => self.parse_boolean(),
             _ => Expression::None,
         }
     }
