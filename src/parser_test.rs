@@ -318,6 +318,77 @@ mod tests {
     }
 
     #[test]
+    fn test_function_parameter_parsing() {
+        let tests = vec![
+            ("fn() {};", vec![]),
+            ("fn(x) {};", vec!["x"]),
+            ("fn(x, y, z) {};", vec!["x", "y", "z"]),
+        ];
+
+        for (input, expected_parms) in tests {
+            let lexer = Lexer::new(input);
+            let mut parser = Parser::new(lexer);
+            let program = parser.parse_program();
+            check_parser_errors(&parser);
+
+            if let Some(statement) = program.statements.into_iter().next() {
+                match statement {
+                    Statement::Expression(expr) => match expr {
+                        Expression::FunctionLiteral(parms, body) => {
+                            assert_eq!(parms.len(), expected_parms.len());
+                            let mut i = 0;
+                            for p in expected_parms {
+                                assert_eq!(p, parms[i]);
+                                i += 1;
+                            }
+                        }
+                        _ => {
+                            println!("Expected function literal, got something else.");
+                            assert!(false);
+                        }
+                    },
+                    _ => {
+                        println!("Expected Statement expr, got something else.");
+                        assert!(false);
+                    }
+                }
+            }
+        }
+    }
+
+    #[test]
+    fn test_call_expression_parsing() {
+        let input = "add(1, 2 * 3, 4 + 5);";
+
+        let lexer = Lexer::new(input);
+        let mut parser = Parser::new(lexer);
+        let program = parser.parse_program();
+        check_parser_errors(&parser);
+
+        if let Some(statement) = program.statements.into_iter().next() {
+            match statement {
+                Statement::Expression(expr) => match expr {
+                    Expression::CallExpression(function, args) => {
+                        assert_eq!(test_identifier(&*function, "add"), true);
+                        assert_eq!(args.len(), 3);
+                        assert_eq!(test_integer_literal(&args[0], 1), true);
+                        test_infix_expression_int(&args[1].to_string(), 2, "*", 3);
+                        test_infix_expression_int(&args[2].to_string(), 4, "+", 5);
+                    }
+                    _ => {
+                        println!("Expected call expression, got something else.");
+                        assert!(false);
+                    }
+                },
+                _ => {
+                    println!("Expected Statement expr, got something else.");
+                    assert!(false);
+                }
+            }
+        }
+    }
+
+    #[test]
     fn test_parsing_prefix_expressions_int() {
         let tests = vec![("!5;", "!", 5), ("-15;", "-", 15)];
 
@@ -337,7 +408,7 @@ mod tests {
                                 assert!(false);
                             }
 
-                            if !test_integer_literal(*right, test_int) {
+                            if !test_integer_literal(&*right, test_int) {
                                 println!("right not equal to integer test");
                                 assert!(false);
                             }
@@ -395,9 +466,9 @@ mod tests {
         }
     }
 
-    fn test_integer_literal(expression: Expression, value: i64) -> bool {
+    fn test_integer_literal(expression: &Expression, value: i64) -> bool {
         match expression {
-            Expression::IntegerLiteral(i) if i == value => true,
+            Expression::IntegerLiteral(i) if i == &value => true,
             Expression::IntegerLiteral(i) => {
                 println!("integer value not {}, got {} ", value, i);
                 false
@@ -449,7 +520,7 @@ mod tests {
             match statement {
                 Statement::Expression(expr) => match expr {
                     Expression::Infix(left, operator, right) => {
-                        if !test_integer_literal(*left, test_left) {
+                        if !test_integer_literal(&*left, test_left) {
                             println!("left not equal to integer test");
                             assert!(false);
                         }
@@ -459,7 +530,7 @@ mod tests {
                             assert!(false);
                         }
 
-                        if !test_integer_literal(*right, test_right) {
+                        if !test_integer_literal(&*right, test_right) {
                             println!("right not equal to integer test");
                             assert!(false);
                         }

@@ -19,6 +19,7 @@ pub enum Expression {
     Boolean(bool),
     IfExpression(Box<Expression>, BlockStatement, Option<BlockStatement>),
     FunctionLiteral(Vec<Identifier>, BlockStatement),
+    CallExpression(Box<Expression>, Vec<Expression>),
     None,
 }
 
@@ -72,9 +73,15 @@ impl fmt::Display for Expression {
                     s
                 }
             }
-            Expression::FunctionLiteral(parms, body) => {
-                format!("fn({}) {}", parms.join(", "), body)
+            Expression::CallExpression(function, arguments) => {
+                let mut args = vec![];
+                for arg in arguments {
+                    args.push(arg.to_string());
+                }
+
+                format!("({}) {}", function, args.join(", "))
             }
+            Expression::FunctionLiteral(parms, body) => format!("{}({})", parms.join(", "), body),
             Expression::None => String::from(""),
         };
         write!(f, "{}", output)
