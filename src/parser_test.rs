@@ -13,29 +13,73 @@ mod tests {
     }
 
     #[test]
-    fn test_let_statements() {
-        let input = "
-            let x = 5;
-            let y = 10;
-            let foobar = 838383;
-        ";
+    fn test_let_statements_int() {
+        let (input, expected_identifier, expected_value) = ("let x = 5;", "x", 5);
 
         let lexer = Lexer::new(input);
         let mut parser = Parser::new(lexer);
 
         let program = parser.parse_program();
         check_parser_errors(&parser);
-        assert_eq!(3, program.statements.len());
-        let tests = ["x", "y", "foobar"];
-
-        let mut statements = program.statements.into_iter();
-        for test in tests.iter() {
-            let s = statements.next().unwrap();
-            test_let_statement(s, test);
+        assert_eq!(1, program.statements.len());
+        let statement = &program.statements[0];
+        test_let_statement(statement, expected_identifier);
+        match statement {
+            Statement::Let(_ident, expr) => {
+                assert_eq!(test_integer_literal(expr, expected_value), true);
+            }
+            _ => {
+                println!("Expected Let stmt, got somethingn else");
+                assert!(false);
+            }
         }
     }
 
-    fn test_let_statement(s: Statement, name: &str) {
+    fn test_let_statements_bool() {
+        let (input, expected_identifier, expected_value) = ("let y = true;", "y", true);
+
+        let lexer = Lexer::new(input);
+        let mut parser = Parser::new(lexer);
+
+        let program = parser.parse_program();
+        check_parser_errors(&parser);
+        assert_eq!(1, program.statements.len());
+        let statement = &program.statements[0];
+        test_let_statement(statement, expected_identifier);
+        match statement {
+            Statement::Let(_ident, expr) => {
+                assert_eq!(test_bool_literal(expr, expected_value), true);
+            }
+            _ => {
+                println!("Expected Let stmt, got somethingn else");
+                assert!(false);
+            }
+        }
+    }
+
+    fn test_let_statements_string() {
+        let (input, expected_identifier, expected_value) = ("let foobar = y;", "foobar", "y");
+
+        let lexer = Lexer::new(input);
+        let mut parser = Parser::new(lexer);
+
+        let program = parser.parse_program();
+        check_parser_errors(&parser);
+        assert_eq!(1, program.statements.len());
+        let statement = &program.statements[0];
+        test_let_statement(statement, expected_identifier);
+        match statement {
+            Statement::Let(_ident, expr) => {
+                assert_eq!(test_identifier(expr, expected_value), true);
+            }
+            _ => {
+                println!("Expected Let stmt, got somethingn else");
+                assert!(false);
+            }
+        }
+    }
+
+    fn test_let_statement(s: &Statement, name: &str) {
         match s {
             Statement::Let(ident, _) => {
                 assert_eq!(ident, name);
@@ -48,22 +92,18 @@ mod tests {
     }
     #[test]
     fn test_return_statements() {
-        let input = "
-            return 5;
-            return 10;
-            return 838383;
-        ";
+        let (input, expected_value) = ("return foobar;", "foobar");
 
         let lexer = Lexer::new(input);
         let mut parser = Parser::new(lexer);
 
         let program = parser.parse_program();
         check_parser_errors(&parser);
-        assert_eq!(3, program.statements.len());
+        assert_eq!(1, program.statements.len());
         for s in program.statements {
             match s {
-                Statement::Return(_) => {
-                    continue;
+                Statement::Return(expr) => {
+                    test_identifier(&expr, expected_value);
                 }
                 _ => {
                     println!("did not get return");
@@ -447,7 +487,7 @@ mod tests {
                                 assert!(false);
                             }
 
-                            if !test_bool_literal(*right, test_bool) {
+                            if !test_bool_literal(&*right, test_bool) {
                                 println!("right not equal to integer test");
                                 assert!(false);
                             }
@@ -480,9 +520,9 @@ mod tests {
         }
     }
 
-    fn test_bool_literal(expression: Expression, value: bool) -> bool {
+    fn test_bool_literal(expression: &Expression, value: bool) -> bool {
         match expression {
-            Expression::Boolean(b) if b == value => true,
+            Expression::Boolean(b) if b == &value => true,
             _ => {
                 println!("bool literal not correct");
                 false
@@ -627,7 +667,7 @@ mod tests {
                 match statement {
                     Statement::Expression(expr) => match expr {
                         Expression::Infix(left, operator, right) => {
-                            if !test_bool_literal(*left, test_left) {
+                            if !test_bool_literal(&*left, test_left) {
                                 println!("left not equal to bool test");
                                 assert!(false);
                             }
@@ -637,7 +677,7 @@ mod tests {
                                 assert!(false);
                             }
 
-                            if !test_bool_literal(*right, test_right) {
+                            if !test_bool_literal(&*right, test_right) {
                                 println!("right not equal to bool test");
                                 assert!(false);
                             }
