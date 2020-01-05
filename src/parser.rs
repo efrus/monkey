@@ -1,4 +1,4 @@
-use crate::ast::{Expression, Program, Statement};
+use crate::ast::{BlockStatement, Expression, Program, Statement};
 use crate::lexer::Lexer;
 use crate::token::Token;
 
@@ -196,6 +196,53 @@ impl<'a> Parser<'a> {
         exp
     }
 
+    fn parse_if_expression(&mut self) -> Expression {
+        if !self.expect_peek(Token::LParen) {
+            return Expression::None;
+        }
+
+        self.next_token();
+        let condition = self.parse_expression(Precedence::LOWEST);
+        if !self.expect_peek(Token::RParen) {
+            return Expression::None;
+        }
+
+        if !self.expect_peek(Token::LBrace) {
+            return Expression::None;
+        }
+        let consequence = self.parse_block_statement();
+        let mut alt = None;
+        if self.peek_token_is(&Token::Else) {
+            self.next_token();
+
+            if !self.expect_peek(Token::LBrace) {
+                return Expression::None;
+            }
+
+            alt = Some(self.parse_block_statement());
+        }
+        Expression::IfExpression(Box::new(condition), consequence, alt)
+    }
+
+    fn parse_block_statement(&mut self) -> BlockStatement {
+        let mut statements = vec![];
+        self.next_token();
+
+        let mut eof = false;
+
+        while !self.current_token_is(&Token::RBrace) && !eof {
+            if let Some(statement) = self.parse_statement() {
+                statements.push(statement);
+            }
+            self.next_token();
+            if self.current_token == None {
+                eof = true;
+            }
+        }
+
+        BlockStatement { statements }
+    }
+
     //convenience method to retrieve token
     fn get_current_token(&self) -> Token {
         match &self.current_token {
@@ -257,6 +304,7 @@ impl<'a> Parser<'a> {
             Some(Token::True) => self.parse_boolean(),
             Some(Token::False) => self.parse_boolean(),
             Some(Token::LParen) => self.parse_grouped_expression(),
+            Some(Token::If) => self.parse_if_expression(),
             _ => Expression::None,
         }
     }

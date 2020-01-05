@@ -158,6 +158,123 @@ mod tests {
     }
 
     #[test]
+    fn test_if_expression() {
+        let input = "if (x < y) { x }";
+
+        let lexer = Lexer::new(input);
+        let mut parser = Parser::new(lexer);
+
+        let program = parser.parse_program();
+        check_parser_errors(&parser);
+        assert_eq!(program.statements.len(), 1);
+
+        if let Some(statement) = program.statements.into_iter().next() {
+            match statement {
+                Statement::Expression(expr) => match expr {
+                    Expression::IfExpression(condition, consequence, alt) => {
+                        test_infix_expression(&condition.to_string(), "x", "<", "y");
+
+                        assert_eq!(consequence.statements.len(), 1);
+                        let s = &consequence.statements[0];
+                        //if let Some(c) = consequence.statements.iter().next() {
+                        match s {
+                            Statement::Expression(ex) => {
+                                if !test_identifier(ex, "x") {
+                                    println!("identifier was not x");
+                                    assert!(false);
+                                }
+                            }
+                            _ => {
+                                println!("Expected Statement expr, got something else.");
+                                assert!(false);
+                            }
+                        }
+
+                        if let Some(_) = alt {
+                            println!("alt sttements was not None");
+                            assert!(false);
+                        }
+                    }
+                    _ => {
+                        println!("Expected If condition, got something else.");
+                        assert!(false);
+                    }
+                },
+                _ => {
+                    println!("Expected Statement expr, got something else.");
+                    assert!(false);
+                }
+            }
+        }
+    }
+
+    #[test]
+    fn test_if_else_expression() {
+        let input = "if (x < y) { x } else { y }";
+
+        let lexer = Lexer::new(input);
+        let mut parser = Parser::new(lexer);
+
+        let program = parser.parse_program();
+        check_parser_errors(&parser);
+        assert_eq!(program.statements.len(), 1);
+
+        if let Some(statement) = program.statements.into_iter().next() {
+            match statement {
+                Statement::Expression(expr) => match expr {
+                    Expression::IfExpression(condition, consequence, alt) => {
+                        test_infix_expression(&condition.to_string(), "x", "<", "y");
+
+                        assert_eq!(consequence.statements.len(), 1);
+                        let s = &consequence.statements[0];
+                        //if let Some(c) = consequence.statements.iter().next() {
+                        match s {
+                            Statement::Expression(ex) => {
+                                if !test_identifier(ex, "x") {
+                                    println!("identifier was not x");
+                                    assert!(false);
+                                }
+                            }
+                            _ => {
+                                println!("Expected Statement expr, got something else.");
+                                assert!(false);
+                            }
+                        }
+
+                        if let Some(alternate) = alt {
+                            assert_eq!(alternate.statements.len(), 1);
+                            let s = &alternate.statements[0];
+                            match s {
+                                Statement::Expression(ex) => {
+                                    if !test_identifier(ex, "y") {
+                                        println!("identifier was not x");
+                                        assert!(false);
+                                    }
+                                }
+                                _ => {
+                                    println!("Expected Statement expr, got something else.");
+                                    assert!(false);
+                                }
+                            }
+                        } else {
+                            println!("alt sttements was None");
+                            assert!(false);
+                        }
+                    }
+                    _ => {
+                        println!("Expected If condition, got something else.");
+                        assert!(false);
+                    }
+                },
+                _ => {
+                    println!("Expected Statement expr, got something else.");
+                    assert!(false);
+                }
+            }
+        }
+    }
+
+    #[test]
     fn test_parsing_prefix_expressions_int() {
         let tests = vec![("!5;", "!", 5), ("-15;", "-", 15)];
 
@@ -259,7 +376,7 @@ mod tests {
         }
     }
 
-    fn test_identifier(expression: Expression, value: String) -> bool {
+    fn test_identifier(expression: &Expression, value: &str) -> bool {
         match expression {
             Expression::Ident(s) if s == value => true,
             Expression::Ident(s) => {
@@ -269,6 +386,94 @@ mod tests {
             _ => {
                 println!("Expression not identifier");
                 false
+            }
+        }
+    }
+
+    fn test_infix_expression_int(
+        test_expr: &str,
+        test_left: i64,
+        test_operator: &str,
+        test_right: i64,
+    ) {
+        let lexer = Lexer::new(test_expr);
+        let mut parser = Parser::new(lexer);
+        let program = parser.parse_program();
+        check_parser_errors(&parser);
+        assert_eq!(program.statements.len(), 1);
+
+        if let Some(statement) = program.statements.into_iter().next() {
+            match statement {
+                Statement::Expression(expr) => match expr {
+                    Expression::Infix(left, operator, right) => {
+                        if !test_integer_literal(*left, test_left) {
+                            println!("left not equal to integer test");
+                            assert!(false);
+                        }
+
+                        if operator != test_operator {
+                            println!("operator is not {}, got {}", test_operator, operator);
+                            assert!(false);
+                        }
+
+                        if !test_integer_literal(*right, test_right) {
+                            println!("right not equal to integer test");
+                            assert!(false);
+                        }
+                    }
+                    _ => {
+                        println!("Not a prefix expression");
+                        assert!(false);
+                    }
+                },
+                _ => {
+                    println!("Expected Statement expr, got something else.");
+                    assert!(false);
+                }
+            }
+        }
+    }
+
+    fn test_infix_expression(
+        test_expr: &str,
+        test_left: &str,
+        test_operator: &str,
+        test_right: &str,
+    ) {
+        let lexer = Lexer::new(test_expr);
+        let mut parser = Parser::new(lexer);
+        let program = parser.parse_program();
+        check_parser_errors(&parser);
+        assert_eq!(program.statements.len(), 1);
+
+        if let Some(statement) = program.statements.into_iter().next() {
+            match statement {
+                Statement::Expression(expr) => match expr {
+                    Expression::Infix(left, operator, right) => {
+                        if !test_identifier(&*left, test_left) {
+                            println!("left not equal to identifier test");
+                            assert!(false);
+                        }
+
+                        if operator != test_operator {
+                            println!("operator is not {}, got {}", test_operator, operator);
+                            assert!(false);
+                        }
+
+                        if !test_identifier(&*right, test_right) {
+                            println!("right not equal to identifier test");
+                            assert!(false);
+                        }
+                    }
+                    _ => {
+                        println!("Not a prefix expression");
+                        assert!(false);
+                    }
+                },
+                _ => {
+                    println!("Expected Statement expr, got something else.");
+                    assert!(false);
+                }
             }
         }
     }
@@ -286,42 +491,7 @@ mod tests {
             ("5 != 5;", 5, "!=", 5),
         ];
         for (test_expr, test_left, test_operator, test_right) in tests {
-            let lexer = Lexer::new(test_expr);
-            let mut parser = Parser::new(lexer);
-            let program = parser.parse_program();
-            check_parser_errors(&parser);
-            assert_eq!(program.statements.len(), 1);
-
-            if let Some(statement) = program.statements.into_iter().next() {
-                match statement {
-                    Statement::Expression(expr) => match expr {
-                        Expression::Infix(left, operator, right) => {
-                            if !test_integer_literal(*left, test_left) {
-                                println!("left not equal to integer test");
-                                assert!(false);
-                            }
-
-                            if operator != test_operator {
-                                println!("operator is not {}, got {}", test_operator, operator);
-                                assert!(false);
-                            }
-
-                            if !test_integer_literal(*right, test_right) {
-                                println!("right not equal to integer test");
-                                assert!(false);
-                            }
-                        }
-                        _ => {
-                            println!("Not a prefix expression");
-                            assert!(false);
-                        }
-                    },
-                    _ => {
-                        println!("Expected Statement expr, got something else.");
-                        assert!(false);
-                    }
-                }
-            }
+            test_infix_expression_int(test_expr, test_left, test_operator, test_right);
         }
     }
 
