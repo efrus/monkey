@@ -23,6 +23,7 @@ fn precedences(token: Token) -> Precedence {
         Token::Minus => Precedence::SUM,
         Token::Slash => Precedence::PRODUCT,
         Token::Asterisk => Precedence::PRODUCT,
+        Token::LParen => Precedence::CALL,
         _ => Precedence::LOWEST,
     }
 }
@@ -181,6 +182,33 @@ impl<'a> Parser<'a> {
         self.next_token();
         let right = self.parse_expression(precedence);
         Expression::Infix(left, operator, Box::new(right))
+    }
+
+    fn parse_call_expression(&mut self, function: Box<Expression>) -> Expression {
+        let args = self.parse_call_arguments();
+        Expression::CallExpression(function, args)
+    }
+
+    fn parse_call_arguments(&mut self) -> Vec<Expression> {
+        let mut args = vec![];
+        if self.peek_token_is(&Token::RParen) {
+            self.next_token();
+            return args;
+        }
+
+        self.next_token();
+        args.push(self.parse_expression(Precedence::LOWEST));
+
+        while self.peek_token_is(&Token::Comma) {
+            self.next_token();
+            self.next_token();
+            args.push(self.parse_expression(Precedence::LOWEST));
+        }
+
+        if !self.expect_peek(Token::RParen) {
+            return vec![];
+        }
+        args
     }
 
     fn parse_boolean(&mut self) -> Expression {
@@ -365,6 +393,7 @@ impl<'a> Parser<'a> {
             Some(Token::NotEq) => self.parse_infix_expression(left_expression),
             Some(Token::Lt) => self.parse_infix_expression(left_expression),
             Some(Token::Gt) => self.parse_infix_expression(left_expression),
+            Some(Token::LParen) => self.parse_call_expression(left_expression),
             _ => Expression::None,
         }
     }

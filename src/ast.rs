@@ -79,7 +79,7 @@ impl fmt::Display for Expression {
                     args.push(arg.to_string());
                 }
 
-                format!("({}) {}", function, args.join(", "))
+                format!("{}({})", function, args.join(", "))
             }
             Expression::FunctionLiteral(parms, body) => format!("{}({})", parms.join(", "), body),
             Expression::None => String::from(""),
