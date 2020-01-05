@@ -18,6 +18,7 @@ pub enum Expression {
     Infix(Box<Expression>, Identifier, Box<Expression>),
     Boolean(bool),
     IfExpression(Box<Expression>, BlockStatement, Option<BlockStatement>),
+    FunctionLiteral(Vec<Identifier>, BlockStatement),
     None,
 }
 
@@ -70,6 +71,9 @@ impl fmt::Display for Expression {
                 } else {
                     s
                 }
+            }
+            Expression::FunctionLiteral(parms, body) => {
+                format!("fn({}) {}", parms.join(", "), body)
             }
             Expression::None => String::from(""),
         };

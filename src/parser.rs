@@ -1,4 +1,4 @@
-use crate::ast::{BlockStatement, Expression, Program, Statement};
+use crate::ast::{BlockStatement, Expression, Identifier, Program, Statement};
 use crate::lexer::Lexer;
 use crate::token::Token;
 
@@ -224,6 +224,46 @@ impl<'a> Parser<'a> {
         Expression::IfExpression(Box::new(condition), consequence, alt)
     }
 
+    fn parse_function_literal(&mut self) -> Expression {
+        if !self.expect_peek(Token::LParen) {
+            return Expression::None;
+        }
+
+        let parms = self.parse_function_parameters();
+
+        if !self.expect_peek(Token::LBrace) {
+            return Expression::None;
+        }
+
+        let body = self.parse_block_statement();
+
+        Expression::FunctionLiteral(parms, body)
+    }
+
+    fn parse_function_parameters(&mut self) -> Vec<Identifier> {
+        let mut identifiers = vec![];
+
+        if self.peek_token_is(&Token::RParen) {
+            self.next_token();
+            return identifiers;
+        }
+
+        self.next_token();
+
+        identifiers.push(self.get_current_token().to_string());
+
+        while self.peek_token_is(&Token::Comma) {
+            self.next_token();
+            self.next_token();
+            identifiers.push(self.get_current_token().to_string());
+        }
+
+        if !self.expect_peek(Token::RParen) {
+            return vec![];
+        }
+        identifiers
+    }
+
     fn parse_block_statement(&mut self) -> BlockStatement {
         let mut statements = vec![];
         self.next_token();
@@ -305,6 +345,7 @@ impl<'a> Parser<'a> {
             Some(Token::False) => self.parse_boolean(),
             Some(Token::LParen) => self.parse_grouped_expression(),
             Some(Token::If) => self.parse_if_expression(),
+            Some(Token::Function) => self.parse_function_literal(),
             _ => Expression::None,
         }
     }

@@ -275,6 +275,49 @@ mod tests {
     }
 
     #[test]
+    fn test_function_literal_parsing() {
+        let input = "fn(x, y) { x + y; }";
+
+        let lexer = Lexer::new(input);
+        let mut parser = Parser::new(lexer);
+
+        let program = parser.parse_program();
+        check_parser_errors(&parser);
+        assert_eq!(program.statements.len(), 1);
+
+        if let Some(statement) = program.statements.into_iter().next() {
+            match statement {
+                Statement::Expression(expr) => match expr {
+                    Expression::FunctionLiteral(parms, body) => {
+                        assert_eq!(parms.len(), 2);
+                        assert_eq!(parms[0], "x");
+                        assert_eq!(parms[1], "y");
+                        assert_eq!(body.statements.len(), 1);
+                        let s = &body.statements[0];
+                        match s {
+                            Statement::Expression(ex) => {
+                                test_infix_expression(&ex.to_string(), "x", "+", "y");
+                            }
+                            _ => {
+                                println!("Expected Statement expr, got something else.");
+                                assert!(false);
+                            }
+                        }
+                    }
+                    _ => {
+                        println!("Expected function literal, got something else.");
+                        assert!(false);
+                    }
+                },
+                _ => {
+                    println!("Expected Statement expr, got something else.");
+                    assert!(false);
+                }
+            }
+        }
+    }
+
+    #[test]
     fn test_parsing_prefix_expressions_int() {
         let tests = vec![("!5;", "!", 5), ("-15;", "-", 15)];
 
