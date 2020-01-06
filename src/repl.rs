@@ -1,4 +1,5 @@
 use crate::lexer::Lexer;
+use crate::parser::Parser;
 use std::error::Error;
 use std::io::{self, Write};
 
@@ -11,9 +12,21 @@ pub fn start() -> Result<(), Box<dyn Error>> {
         let mut input = String::new();
         io::stdin().read_line(&mut input)?;
 
-        let mut l = Lexer::new(&input);
-        while let Some(tok) = l.next_token() {
-            println!("Type:{:?} Literal:{}", tok, tok);
+        let mut lexer = Lexer::new(&input);
+        let mut parser = Parser::new(lexer);
+        let program = parser.parse_program();
+        if parser.errors().len() > 0 {
+            println!("Woops! We ran into some monkey business here!");
+            println!(" parser errors: ");
+            for s in parser.errors() {
+                println!("{}", s);
+            }
+            continue;
         }
+
+        println!("{}", program.to_string());
+        /*while let Some(tok) = l.next_token() {
+            println!("Type:{:?} Literal:{}", tok, tok);
+        }*/
     }
 }
