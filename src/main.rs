@@ -1,7 +1,10 @@
 mod ast;
 mod ast_test;
+mod evaluator;
+mod evaluator_test;
 mod lexer;
 mod lexer_test;
+mod object;
 mod parser;
 mod parser_test;
 mod repl;

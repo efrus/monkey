@@ -12,7 +12,7 @@ pub fn start() -> Result<(), Box<dyn Error>> {
         let mut input = String::new();
         io::stdin().read_line(&mut input)?;
 
-        let mut lexer = Lexer::new(&input);
+        let lexer = Lexer::new(&input);
         let mut parser = Parser::new(lexer);
         let program = parser.parse_program();
         if parser.errors().len() > 0 {

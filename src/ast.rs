@@ -7,7 +7,6 @@ pub enum Statement {
     Let(Identifier, Expression),
     Return(Expression),
     Expression(Expression),
-    None,
 }
 
 #[derive(Debug, PartialEq, Clone)]
@@ -49,7 +48,6 @@ impl fmt::Display for Statement {
             Statement::Let(ident, expr) => format!("let {} = {};", ident, expr),
             Statement::Return(expr) => format!("return {};", expr),
             Statement::Expression(expr) => expr.to_string(),
-            Statement::None => String::from(""),
         };
         write!(f, "{}", output)
     }
