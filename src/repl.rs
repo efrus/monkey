@@ -1,3 +1,4 @@
+use crate::evaluator;
 use crate::lexer::Lexer;
 use crate::parser::Parser;
 use std::error::Error;
@@ -24,9 +25,9 @@ pub fn start() -> Result<(), Box<dyn Error>> {
             continue;
         }
 
-        println!("{}", program.to_string());
-        /*while let Some(tok) = l.next_token() {
-            println!("Type:{:?} Literal:{}", tok, tok);
-        }*/
+        let evaluated = evaluator::eval(program);
+        println!("{}", evaluated.inspect());
+
+        //println!("{}", program.to_string());
     }
 }

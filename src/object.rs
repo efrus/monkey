@@ -1,15 +1,16 @@
+#[derive(Debug, Clone, PartialEq)]
 pub enum Object {
     Integer(i64),
     Boolean(bool),
     Null,
 }
 
-const INTEGER_OBJ: &str = "INTEGER";
-const BOOLEAN_OBJ: &str = "BOOLEAN";
-const NULL_OBJ: &str = "NULL";
+static INTEGER_OBJ: &str = "INTEGER";
+static BOOLEAN_OBJ: &str = "BOOLEAN";
+static NULL_OBJ: &str = "NULL";
 
 impl Object {
-    fn inspect(&self) -> String {
+    pub fn inspect(&self) -> String {
         match &self {
             Object::Integer(i) => i.to_string(),
             Object::Boolean(b) => b.to_string(),
@@ -18,7 +19,7 @@ impl Object {
         }
     }
 
-    fn obj_type<'a>(&self) -> &'a str {
+    pub fn obj_type<'a>(&self) -> &'a str {
         match &self {
             Object::Integer(_) => INTEGER_OBJ,
             Object::Boolean(_) => BOOLEAN_OBJ,
