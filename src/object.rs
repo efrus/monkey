@@ -5,10 +5,6 @@ pub enum Object {
     Null,
 }
 
-static INTEGER_OBJ: &str = "INTEGER";
-static BOOLEAN_OBJ: &str = "BOOLEAN";
-static NULL_OBJ: &str = "NULL";
-
 impl Object {
     pub fn inspect(&self) -> String {
         match &self {
@@ -19,12 +15,12 @@ impl Object {
         }
     }
 
-    pub fn obj_type<'a>(&self) -> &'a str {
+    /*pub fn obj_type<'a>(&self) -> &'a str {
         match &self {
             Object::Integer(_) => INTEGER_OBJ,
             Object::Boolean(_) => BOOLEAN_OBJ,
             Object::Null => NULL_OBJ,
             _ => "",
         }
-    }
+    }*/
 }
