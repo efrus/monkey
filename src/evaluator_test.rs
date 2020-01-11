@@ -17,8 +17,8 @@ mod tests {
         let tests = vec![
             ("5", 5),
             ("10", 10),
-            ("-5", 5),
-            ("-10", 10),
+            ("-5", -5),
+            ("-10", -10),
             ("5 + 5 + 5 + 5 - 10", 10),
             ("2 * 2 * 2 * 2 * 2", 32),
             ("-50 + 100 + -50", 0),
@@ -43,6 +43,7 @@ mod tests {
             Object::Integer(i) if i == expected => (),
             Object::Integer(i) => {
                 println!("object has wrong int value. got={}, want={}", i, expected);
+                assert!(false);
             }
             _ => {
                 println!("object is not integer.");
@@ -107,6 +108,34 @@ mod tests {
         for (input, expected) in tests {
             let evaluated = test_eval(input);
             test_boolean_object(evaluated, expected);
+        }
+    }
+
+    #[test]
+    fn test_if_else_expressions() {
+        let tests = vec![
+            ("if (true) { 10 }", Some(10)),
+            ("if (false) { 10 }", None),
+            ("if (1) { 10 } ", Some(10)),
+            ("if (1 < 2) { 10 }", Some(10)),
+            ("if (1 > 2) { 10 }", None),
+            ("if (1 > 2) { 10 } else { 20 }", Some(20)),
+            ("if (1 < 2) { 10 } else { 20 }", Some(10)),
+        ];
+
+        for (input, expected) in tests {
+            let evaluated = test_eval(input);
+            match expected {
+                Some(i) => test_integer_object(evaluated, i),
+                None => test_null_object(evaluated),
+            }
+        }
+    }
+
+    fn test_null_object(obj: Object) {
+        if obj != Object::Null {
+            println!("Expected Null");
+            assert!(false);
         }
     }
 }

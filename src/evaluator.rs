@@ -29,11 +29,28 @@ fn eval_expression(expression: Expression) -> Object {
             let r = eval_expression(*right);
             eval_infix_expression(&operator, l, r)
         }
+        Expression::IfExpression(condition, consequence, alt) => {
+            let c = eval_expression(*condition);
+            if is_truthy(c) {
+                return eval_block_statement(consequence);
+            }
+            match alt {
+                Some(val) => eval_block_statement(val),
+                None => Object::Null,
+            }
+        }
         _ => Object::Null,
     }
 }
 
 fn eval_block_statement(block_statement: BlockStatement) -> Object {
+    for statement in block_statement.statements {
+        let result = eval_statement(statement);
+        return result;
+        /*match result {
+            Object::
+        }*/
+    }
     Object::Null
 }
 
@@ -90,5 +107,14 @@ fn eval_minus_prefix_operator_expression(right: Object) -> Object {
     match right {
         Object::Integer(i) => Object::Integer(-i),
         _ => Object::Null,
+    }
+}
+
+fn is_truthy(obj: Object) -> bool {
+    match obj {
+        Object::Null => false,
+        Object::Boolean(true) => true,
+        Object::Boolean(false) => false,
+        _ => true,
     }
 }
