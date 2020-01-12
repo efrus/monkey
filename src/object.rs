@@ -1,8 +1,11 @@
+use std::fmt;
+
 #[derive(Debug, Clone, PartialEq)]
 pub enum Object {
     Integer(i64),
     Boolean(bool),
     ReturnValue(Box<Object>),
+    Error(String),
     Null,
 }
 
@@ -23,6 +26,7 @@ impl Object {
             Object::Boolean(b) => b.to_string(),
             Object::Null => String::from("null"),
             Object::ReturnValue(value) => String::from(&*value.inspect()),
+            Object::Error(msg) => format!("ERROR: {}", msg),
         }
     }
 
@@ -32,6 +36,21 @@ impl Object {
             Object::Boolean(_) => ObjectType::Boolean,
             Object::Null => ObjectType::Null,
             Object::ReturnValue(_) => ObjectType::ReturnValue,
+            Object::Error(_) => ObjectType::Error,
         }
+    }
+}
+
+impl fmt::Display for ObjectType {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let output = match &self {
+            ObjectType::Null => "NULL",
+            ObjectType::Error => "ERROR",
+            ObjectType::Integer => "INTEGER",
+            ObjectType::Boolean => "BOOLEAN",
+            ObjectType::ReturnValue => "RETURN_VALUE",
+            ObjectType::Function => "FUNCTION",
+        };
+        write!(f, "{}", output)
     }
 }

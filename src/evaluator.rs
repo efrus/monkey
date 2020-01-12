@@ -4,12 +4,13 @@ use crate::object::{Object, ObjectType};
 pub fn eval(program: Program) -> Object {
     let mut result = Object::Null;
     for statement in program.statements {
-        dbg!(&statement);
         result = eval_statement(statement);
         match result {
             Object::ReturnValue(val) => {
-                dbg!(&*val);
                 return *val;
+            }
+            Object::Error(_) => {
+                return result;
             }
             _ => (),
         }
@@ -22,6 +23,9 @@ fn eval_statement(statement: Statement) -> Object {
         Statement::Expression(expr) => eval_expression(expr),
         Statement::Return(expr) => {
             let val = eval_expression(expr);
+            if is_error(&val) {
+                return val;
+            }
             Object::ReturnValue(Box::new(val))
         }
         _ => Object::Null,
@@ -34,15 +38,27 @@ fn eval_expression(expression: Expression) -> Object {
         Expression::Boolean(b) => Object::Boolean(b),
         Expression::Prefix(operator, right) => {
             let r = eval_expression(*right);
+            if is_error(&r) {
+                return r;
+            }
             eval_prefix_expression(&operator, r)
         }
         Expression::Infix(left, operator, right) => {
             let l = eval_expression(*left);
+            if is_error(&l) {
+                return l;
+            }
             let r = eval_expression(*right);
+            if is_error(&r) {
+                return r;
+            }
             eval_infix_expression(&operator, l, r)
         }
         Expression::IfExpression(condition, consequence, alt) => {
             let c = eval_expression(*condition);
+            if is_error(&c) {
+                return c;
+            }
             if is_truthy(c) {
                 return eval_block_statement(consequence);
             }
@@ -59,8 +75,7 @@ fn eval_block_statement(block_statement: BlockStatement) -> Object {
     let mut result = Object::Null;
     for statement in block_statement.statements {
         result = eval_statement(statement);
-        if result.obj_type() == ObjectType::ReturnValue {
-            dbg!(&result);
+        if result.obj_type() == ObjectType::ReturnValue || result.obj_type() == ObjectType::Error {
             return result;
         }
     }
@@ -71,7 +86,10 @@ fn eval_prefix_expression(operator: &str, right: Object) -> Object {
     match operator {
         "!" => eval_bang_operator_expression(right),
         "-" => eval_minus_prefix_operator_expression(right),
-        _ => Object::Null,
+        _ => {
+            let msg = format!("unknown operator: {}{}", operator, right.obj_type());
+            Object::Error(msg)
+        }
     }
 }
 
@@ -84,7 +102,25 @@ fn eval_infix_expression(operator: &str, left: Object, right: Object) -> Object 
     match operator {
         "==" => Object::Boolean(left == right),
         "!=" => Object::Boolean(left != right),
-        _ => Object::Null,
+        _ => {
+            if left.obj_type() != right.obj_type() {
+                let msg = format!(
+                    "type mismatch: {} {} {}",
+                    left.obj_type(),
+                    operator,
+                    right.obj_type()
+                );
+                return Object::Error(msg);
+            } else {
+                let msg = format!(
+                    "unknown operator: {} {} {}",
+                    left.obj_type(),
+                    operator,
+                    right.obj_type()
+                );
+                return Object::Error(msg);
+            }
+        }
     }
 }
 
@@ -100,7 +136,15 @@ fn eval_integer_infix_expression(operator: &str, left: Object, right: Object) ->
                 ">" => Object::Boolean(left_value > right_value),
                 "==" => Object::Boolean(left_value == right_value),
                 "!=" => Object::Boolean(left_value != right_value),
-                _ => Object::Null,
+                _ => {
+                    let msg = format!(
+                        "unknown operator: {} {} {}",
+                        left.obj_type(),
+                        operator,
+                        right.obj_type()
+                    );
+                    Object::Error(msg)
+                }
             };
         };
     };
@@ -119,7 +163,11 @@ fn eval_bang_operator_expression(right: Object) -> Object {
 fn eval_minus_prefix_operator_expression(right: Object) -> Object {
     match right {
         Object::Integer(i) => Object::Integer(-i),
-        _ => Object::Null,
+        _ => {
+            dbg!(&right);
+            let msg = format!("unknown operator: -{}", right.obj_type());
+            Object::Error(msg)
+        }
     }
 }
 
@@ -130,4 +178,8 @@ fn is_truthy(obj: Object) -> bool {
         Object::Boolean(false) => false,
         _ => true,
     }
+}
+
+fn is_error(obj: &Object) -> bool {
+    obj.obj_type() == ObjectType::Error
 }

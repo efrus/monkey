@@ -162,8 +162,47 @@ mod tests {
 
         for (input, expected) in tests {
             let evaluated = test_eval(input);
-            dbg!(&evaluated);
             test_integer_object(evaluated, expected);
+        }
+    }
+
+    #[test]
+    fn test_error_handling() {
+        let tests = vec![
+            //("5 + true;", "type mismatch: INTEGER + BOOLEAN"),
+            //("5 + true; 5;", "type mismatch: INTEGER + BOOLEAN"),
+            //("-true", "unknown operator: -BOOLEAN"),
+            ("true + false", "unknown operator: BOOLEAN + BOOLEAN"),
+            ("5; true + false; 5", "unknown operator: BOOLEAN + BOOLEAN"),
+            (
+                "if (10 > 1) { true + false; }",
+                "unknown operator: BOOLEAN + BOOLEAN",
+            ),
+            (
+                "if (10 > 1) { 
+                    if (10 > 1) {
+                        return true + false; 
+                    }
+                    return 1;
+                }",
+                "unknown operator: BOOLEAN + BOOLEAN",
+            ),
+        ];
+
+        for (input, expected) in tests {
+            let evaluated = test_eval(input);
+            match evaluated {
+                Object::Error(msg) => {
+                    if msg != expected {
+                        println!("wrong error message, expected={}, got={}", expected, msg);
+                        assert!(false);
+                    }
+                }
+                _ => {
+                    println!("no error object reteurned");
+                    assert!(false);
+                }
+            }
         }
     }
 }
