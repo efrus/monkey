@@ -1,12 +1,15 @@
 use crate::evaluator;
 use crate::lexer::Lexer;
+use crate::object::Environment;
 use crate::parser::Parser;
 use std::error::Error;
 use std::io::{self, Write};
+use std::rc::Rc;
 
 const PROMPT: &str = ">> ";
 
 pub fn start() -> Result<(), Box<dyn Error>> {
+    let env = Rc::new(Environment::new());
     loop {
         print!("{}", PROMPT);
         io::stdout().flush()?;
@@ -25,7 +28,7 @@ pub fn start() -> Result<(), Box<dyn Error>> {
             continue;
         }
 
-        let evaluated = evaluator::eval(program);
+        let evaluated = evaluator::eval(program, env.clone());
         println!("{}", evaluated.inspect());
 
         //println!("{}", program.to_string());

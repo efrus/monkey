@@ -2,15 +2,16 @@
 mod tests {
     use crate::evaluator;
     use crate::lexer::Lexer;
-    use crate::object::Object;
+    use crate::object::{Environment, Object};
     use crate::parser::Parser;
+    use std::rc::Rc;
 
     fn test_eval(input: &str) -> Object {
         let lexer = Lexer::new(&input);
         let mut parser = Parser::new(lexer);
         let program = parser.parse_program();
-
-        return evaluator::eval(program);
+        let env = Rc::new(Environment::new());
+        return evaluator::eval(program, env);
     }
     //#[test]
     fn test_eval_integer_expression() {
@@ -169,9 +170,9 @@ mod tests {
     #[test]
     fn test_error_handling() {
         let tests = vec![
-            //("5 + true;", "type mismatch: INTEGER + BOOLEAN"),
-            //("5 + true; 5;", "type mismatch: INTEGER + BOOLEAN"),
-            //("-true", "unknown operator: -BOOLEAN"),
+            ("5 + true;", "type mismatch: INTEGER + BOOLEAN"),
+            ("5 + true; 5;", "type mismatch: INTEGER + BOOLEAN"),
+            ("-true", "unknown operator: -BOOLEAN"),
             ("true + false", "unknown operator: BOOLEAN + BOOLEAN"),
             ("5; true + false; 5", "unknown operator: BOOLEAN + BOOLEAN"),
             (
@@ -187,6 +188,7 @@ mod tests {
                 }",
                 "unknown operator: BOOLEAN + BOOLEAN",
             ),
+            ("foobar", "identifier not found: foobar"),
         ];
 
         for (input, expected) in tests {
@@ -203,6 +205,21 @@ mod tests {
                     assert!(false);
                 }
             }
+        }
+    }
+
+    #[test]
+    fn test_let_statement() {
+        let tests = vec![
+            ("let a = 5; a;", 5),
+            ("let a = 5 * 5; a;", 25),
+            ("let a = 5; let b = a; b;", 5),
+            ("let a = 5; let b = a; let c = a + b + 5; c;", 15),
+        ];
+
+        for (input, expected) in tests {
+            let obj = test_eval(input);
+            test_integer_object(obj, expected);
         }
     }
 }

@@ -1,10 +1,11 @@
 use crate::ast::{BlockStatement, Expression, Program, Statement};
-use crate::object::{Object, ObjectType};
+use crate::object::{Environment, Object, ObjectType};
+use std::rc::Rc;
 
-pub fn eval(program: Program) -> Object {
+pub fn eval(program: Program, env: Rc<Environment>) -> Object {
     let mut result = Object::Null;
     for statement in program.statements {
-        result = eval_statement(statement);
+        result = eval_statement(statement, env.clone());
         match result {
             Object::ReturnValue(val) => {
                 return *val;
@@ -18,52 +19,60 @@ pub fn eval(program: Program) -> Object {
     result
 }
 
-fn eval_statement(statement: Statement) -> Object {
+fn eval_statement(statement: Statement, env: Rc<Environment>) -> Object {
     match statement {
-        Statement::Expression(expr) => eval_expression(expr),
+        Statement::Expression(expr) => eval_expression(expr, env),
         Statement::Return(expr) => {
-            let val = eval_expression(expr);
+            let val = eval_expression(expr, env);
             if is_error(&val) {
                 return val;
             }
             Object::ReturnValue(Box::new(val))
         }
+        Statement::Let(ident, expr) => {
+            let val = eval_expression(expr, env);
+            if is_error(&val) {
+                return val;
+            }
+            env.set(expr.to_string(), val);
+            Object::Null
+        }
         _ => Object::Null,
     }
 }
 
-fn eval_expression(expression: Expression) -> Object {
+fn eval_expression(expression: Expression, env: Rc<Environment>) -> Object {
     match expression {
         Expression::IntegerLiteral(i) => Object::Integer(i),
         Expression::Boolean(b) => Object::Boolean(b),
         Expression::Prefix(operator, right) => {
-            let r = eval_expression(*right);
+            let r = eval_expression(*right, env);
             if is_error(&r) {
                 return r;
             }
             eval_prefix_expression(&operator, r)
         }
         Expression::Infix(left, operator, right) => {
-            let l = eval_expression(*left);
+            let l = eval_expression(*left, env.clone());
             if is_error(&l) {
                 return l;
             }
-            let r = eval_expression(*right);
+            let r = eval_expression(*right, env.clone());
             if is_error(&r) {
                 return r;
             }
             eval_infix_expression(&operator, l, r)
         }
         Expression::IfExpression(condition, consequence, alt) => {
-            let c = eval_expression(*condition);
+            let c = eval_expression(*condition, env.clone());
             if is_error(&c) {
                 return c;
             }
             if is_truthy(c) {
-                return eval_block_statement(consequence);
+                return eval_block_statement(consequence, env.clone());
             }
             match alt {
-                Some(val) => eval_block_statement(val),
+                Some(val) => eval_block_statement(val, env),
                 None => Object::Null,
             }
         }
@@ -71,10 +80,10 @@ fn eval_expression(expression: Expression) -> Object {
     }
 }
 
-fn eval_block_statement(block_statement: BlockStatement) -> Object {
+fn eval_block_statement(block_statement: BlockStatement, env: Rc<Environment>) -> Object {
     let mut result = Object::Null;
     for statement in block_statement.statements {
-        result = eval_statement(statement);
+        result = eval_statement(statement, env.clone());
         if result.obj_type() == ObjectType::ReturnValue || result.obj_type() == ObjectType::Error {
             return result;
         }

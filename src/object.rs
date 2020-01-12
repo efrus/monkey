@@ -1,4 +1,6 @@
+use std::collections::HashMap;
 use std::fmt;
+use std::rc::Rc;
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum Object {
@@ -52,5 +54,24 @@ impl fmt::Display for ObjectType {
             ObjectType::Function => "FUNCTION",
         };
         write!(f, "{}", output)
+    }
+}
+
+pub struct Environment {
+    pub store: HashMap<String, Object>,
+}
+
+impl Environment {
+    pub fn new() -> Environment {
+        let store = HashMap::new();
+        Environment { store }
+    }
+
+    pub fn get(&self, name: String) -> Option<&Object> {
+        self.store.get(&name)
+    }
+
+    pub fn set(&mut self, name: String, obj: Object) -> Option<Object> {
+        self.store.insert(name, obj)
     }
 }
