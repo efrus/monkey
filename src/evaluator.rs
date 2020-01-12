@@ -1,10 +1,18 @@
 use crate::ast::{BlockStatement, Expression, Program, Statement};
-use crate::object::Object;
+use crate::object::{Object, ObjectType};
 
 pub fn eval(program: Program) -> Object {
     let mut result = Object::Null;
     for statement in program.statements {
+        dbg!(&statement);
         result = eval_statement(statement);
+        match result {
+            Object::ReturnValue(val) => {
+                dbg!(&*val);
+                return *val;
+            }
+            _ => (),
+        }
     }
     result
 }
@@ -12,6 +20,10 @@ pub fn eval(program: Program) -> Object {
 fn eval_statement(statement: Statement) -> Object {
     match statement {
         Statement::Expression(expr) => eval_expression(expr),
+        Statement::Return(expr) => {
+            let val = eval_expression(expr);
+            Object::ReturnValue(Box::new(val))
+        }
         _ => Object::Null,
     }
 }
@@ -44,14 +56,15 @@ fn eval_expression(expression: Expression) -> Object {
 }
 
 fn eval_block_statement(block_statement: BlockStatement) -> Object {
+    let mut result = Object::Null;
     for statement in block_statement.statements {
-        let result = eval_statement(statement);
-        return result;
-        /*match result {
-            Object::
-        }*/
+        result = eval_statement(statement);
+        if result.obj_type() == ObjectType::ReturnValue {
+            dbg!(&result);
+            return result;
+        }
     }
-    Object::Null
+    result
 }
 
 fn eval_prefix_expression(operator: &str, right: Object) -> Object {

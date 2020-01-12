@@ -12,7 +12,7 @@ mod tests {
 
         return evaluator::eval(program);
     }
-    #[test]
+    //#[test]
     fn test_eval_integer_expression() {
         let tests = vec![
             ("5", 5),
@@ -72,7 +72,7 @@ mod tests {
             ("(1 < 2) == true", true),
             ("(1 < 2) == false", false),
             ("(1 > 2) == true", false),
-            ("(1 > 2) == true", true),
+            ("(1 > 2) == false", true),
         ];
 
         for (input, expected) in tests {
@@ -86,6 +86,7 @@ mod tests {
             Object::Boolean(b) if b == expected => (),
             Object::Boolean(b) => {
                 println!("object has wrong bool value. got={}, want={}", b, expected);
+                assert!(false);
             }
             _ => {
                 println!("object is not bool.");
@@ -136,6 +137,33 @@ mod tests {
         if obj != Object::Null {
             println!("Expected Null");
             assert!(false);
+        }
+    }
+
+    #[test]
+    fn test_return_statements() {
+        let tests = vec![
+            ("return 10;", 10),
+            ("return 10; 9;", 10),
+            ("return 2 * 5; 9;", 10),
+            ("9; return 2 * 5; 9;", 10),
+            ("if (10 > 1) { return 10; }", 10),
+            (
+                "if (10 > 1) {
+                if (10 > 1) {
+                  return 10;
+                }
+              
+                return 1;
+              }",
+                10,
+            ),
+        ];
+
+        for (input, expected) in tests {
+            let evaluated = test_eval(input);
+            dbg!(&evaluated);
+            test_integer_object(evaluated, expected);
         }
     }
 }
