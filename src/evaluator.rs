@@ -77,6 +77,19 @@ fn eval_expression(expression: Expression, env: Rc<RefCell<Environment>>) -> Obj
             }
         }
         Expression::Ident(ident) => eval_identifier(ident, env),
+        Expression::FunctionLiteral(parms, body) => Object::Function(parms, body, env.clone()),
+        Expression::CallExpression(function, arguments) => {
+            let function = eval_expression(*function, env.clone());
+            if is_error(&function) {
+                function
+            } else {
+                let args = eval_expressions(arguments, env);
+                if args.len() == 1 && is_error(&args[0]) {
+                    return args[0].clone();
+                }
+                Object::Null
+            }
+        }
         _ => Object::Null,
     }
 }
@@ -100,6 +113,19 @@ fn eval_identifier(ident: String, env: Rc<RefCell<Environment>>) -> Object {
             Object::Error(msg)
         }
     }
+}
+
+fn eval_expressions(expressions: Vec<Expression>, env: Rc<RefCell<Environment>>) -> Vec<Object> {
+    let mut result = vec![];
+    for exp in expressions {
+        let eval = eval_expression(exp, env.clone());
+        if is_error(&eval) {
+            return vec![eval];
+        }
+        result.push(eval);
+    }
+
+    result
 }
 
 fn eval_prefix_expression(operator: &str, right: Object) -> Object {

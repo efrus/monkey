@@ -1,3 +1,5 @@
+use crate::ast::{BlockStatement, Identifier};
+use std::cell::RefCell;
 use std::collections::HashMap;
 use std::fmt;
 use std::rc::Rc;
@@ -8,6 +10,7 @@ pub enum Object {
     Boolean(bool),
     ReturnValue(Box<Object>),
     Error(String),
+    Function(Vec<Identifier>, BlockStatement, Rc<RefCell<Environment>>),
     Null,
 }
 
@@ -29,6 +32,9 @@ impl Object {
             Object::Null => String::from(""),
             Object::ReturnValue(value) => String::from(&*value.inspect()),
             Object::Error(msg) => format!("ERROR: {}", msg),
+            Object::Function(parms, body, _) => {
+                format!("fn({}) {{\n{}\n}}", parms.join(", "), body.to_string())
+            }
         }
     }
 
@@ -39,6 +45,7 @@ impl Object {
             Object::Null => ObjectType::Null,
             Object::ReturnValue(_) => ObjectType::ReturnValue,
             Object::Error(_) => ObjectType::Error,
+            Object::Function(_, _, _) => ObjectType::Function,
         }
     }
 }
@@ -57,6 +64,7 @@ impl fmt::Display for ObjectType {
     }
 }
 
+#[derive(Debug, Clone, PartialEq)]
 pub struct Environment {
     pub store: HashMap<String, Object>,
 }

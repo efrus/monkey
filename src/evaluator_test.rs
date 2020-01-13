@@ -224,4 +224,48 @@ mod tests {
             test_integer_object(obj, expected);
         }
     }
+
+    #[test]
+    fn test_function_object() {
+        let input = "fn(x) { x + 2; };";
+        let evaluated = test_eval(input);
+        match evaluated {
+            Object::Function(parms, body, env) => {
+                assert_eq!(parms.len(), 1);
+                if parms[0].to_string() != "x" {
+                    println!("paramater is not 'x'. got={}", parms[0].to_string());
+                    assert!(false);
+                }
+
+                let expected_body = String::from("(x + 2)");
+
+                if body.to_string() != expected_body {
+                    println!("body is not {}. got={}", expected_body, body);
+                    assert!(false);
+                }
+            }
+            _ => {
+                println!("object is not function");
+                assert!(false);
+            }
+        }
+    }
+
+    #[test]
+    fn test_function_application() {
+        let tests = vec![
+            ("let identity = fn(x) { x; }; identity(5);", 5),
+            ("let identity = fn(x) { return x; }; identity(5);", 5),
+            ("let double = fn(x) { x * 2; }; double(5);", 10),
+            ("let add = fn(x, y) { x + y; }; add(5, 5);", 10),
+            ("let add = fn(x, y) { x + y; }; add(5 + 5, add(5, 5));", 20),
+            ("fn(x) { x; }(5)", 5),
+        ];
+
+        for (input, expected) in tests {
+            let obj = test_eval(input);
+            dbg!(&obj);
+            test_integer_object(obj, expected);
+        }
+    }
 }
