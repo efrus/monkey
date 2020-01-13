@@ -32,11 +32,9 @@ fn eval_statement(statement: Statement, env: Rc<RefCell<Environment>>) -> Object
         }
         Statement::Let(ident, expr) => {
             let val = eval_expression(expr.clone(), env.clone());
-            if is_error(&val) {
-                return val;
+            if !is_error(&val) {
+                env.borrow_mut().set(ident, val.clone());
             }
-            env.borrow_mut().set(ident, val.clone());
-            //Object::Null
             val
         }
         _ => Object::Null,
