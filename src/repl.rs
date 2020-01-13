@@ -2,6 +2,7 @@ use crate::evaluator;
 use crate::lexer::Lexer;
 use crate::object::Environment;
 use crate::parser::Parser;
+use std::cell::RefCell;
 use std::error::Error;
 use std::io::{self, Write};
 use std::rc::Rc;
@@ -9,7 +10,7 @@ use std::rc::Rc;
 const PROMPT: &str = ">> ";
 
 pub fn start() -> Result<(), Box<dyn Error>> {
-    let env = Rc::new(Environment::new());
+    let env = Rc::new(RefCell::new(Environment::new()));
     loop {
         print!("{}", PROMPT);
         io::stdout().flush()?;

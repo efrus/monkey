@@ -1,8 +1,9 @@
 use crate::ast::{BlockStatement, Expression, Program, Statement};
 use crate::object::{Environment, Object, ObjectType};
+use std::cell::RefCell;
 use std::rc::Rc;
 
-pub fn eval(program: Program, env: Rc<Environment>) -> Object {
+pub fn eval(program: Program, env: Rc<RefCell<Environment>>) -> Object {
     let mut result = Object::Null;
     for statement in program.statements {
         result = eval_statement(statement, env.clone());
@@ -19,7 +20,7 @@ pub fn eval(program: Program, env: Rc<Environment>) -> Object {
     result
 }
 
-fn eval_statement(statement: Statement, env: Rc<Environment>) -> Object {
+fn eval_statement(statement: Statement, env: Rc<RefCell<Environment>>) -> Object {
     match statement {
         Statement::Expression(expr) => eval_expression(expr, env),
         Statement::Return(expr) => {
@@ -30,18 +31,19 @@ fn eval_statement(statement: Statement, env: Rc<Environment>) -> Object {
             Object::ReturnValue(Box::new(val))
         }
         Statement::Let(ident, expr) => {
-            let val = eval_expression(expr, env);
+            let val = eval_expression(expr.clone(), env.clone());
             if is_error(&val) {
                 return val;
             }
-            env.set(expr.to_string(), val);
-            Object::Null
+            env.borrow_mut().set(ident, val.clone());
+            //Object::Null
+            val
         }
         _ => Object::Null,
     }
 }
 
-fn eval_expression(expression: Expression, env: Rc<Environment>) -> Object {
+fn eval_expression(expression: Expression, env: Rc<RefCell<Environment>>) -> Object {
     match expression {
         Expression::IntegerLiteral(i) => Object::Integer(i),
         Expression::Boolean(b) => Object::Boolean(b),
@@ -76,11 +78,12 @@ fn eval_expression(expression: Expression, env: Rc<Environment>) -> Object {
                 None => Object::Null,
             }
         }
+        Expression::Ident(ident) => eval_identifier(ident, env),
         _ => Object::Null,
     }
 }
 
-fn eval_block_statement(block_statement: BlockStatement, env: Rc<Environment>) -> Object {
+fn eval_block_statement(block_statement: BlockStatement, env: Rc<RefCell<Environment>>) -> Object {
     let mut result = Object::Null;
     for statement in block_statement.statements {
         result = eval_statement(statement, env.clone());
@@ -89,6 +92,16 @@ fn eval_block_statement(block_statement: BlockStatement, env: Rc<Environment>) -
         }
     }
     result
+}
+
+fn eval_identifier(ident: String, env: Rc<RefCell<Environment>>) -> Object {
+    match env.borrow().get(ident.clone()) {
+        Some(val) => val.clone(),
+        None => {
+            let msg = format!("identifier not found: {}", ident);
+            Object::Error(msg)
+        }
+    }
 }
 
 fn eval_prefix_expression(operator: &str, right: Object) -> Object {

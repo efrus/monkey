@@ -4,13 +4,14 @@ mod tests {
     use crate::lexer::Lexer;
     use crate::object::{Environment, Object};
     use crate::parser::Parser;
+    use std::cell::RefCell;
     use std::rc::Rc;
 
     fn test_eval(input: &str) -> Object {
         let lexer = Lexer::new(&input);
         let mut parser = Parser::new(lexer);
         let program = parser.parse_program();
-        let env = Rc::new(Environment::new());
+        let env = Rc::new(RefCell::new(Environment::new()));
         return evaluator::eval(program, env);
     }
     //#[test]
@@ -219,6 +220,7 @@ mod tests {
 
         for (input, expected) in tests {
             let obj = test_eval(input);
+            dbg!(&obj);
             test_integer_object(obj, expected);
         }
     }
