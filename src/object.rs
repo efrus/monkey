@@ -26,7 +26,7 @@ impl Object {
         match &self {
             Object::Integer(i) => i.to_string(),
             Object::Boolean(b) => b.to_string(),
-            Object::Null => String::from("null"),
+            Object::Null => String::from(""),
             Object::ReturnValue(value) => String::from(&*value.inspect()),
             Object::Error(msg) => format!("ERROR: {}", msg),
         }
