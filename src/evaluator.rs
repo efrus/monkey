@@ -217,12 +217,9 @@ fn extend_function_env(function: &Object, args: Vec<Object>) -> Option<Rc<RefCel
     match function {
         Object::Function(parms, _body, env) => {
             let mut env = Environment::new_enclosed_environment(env.clone());
-            let mut iter = parms.iter().zip(args.iter());
-            match iter.next() {
-                Some((parm, arg)) => {
-                    env.set(parm.to_string(), arg.clone());
-                }
-                _ => (),
+            let items: Vec<_> = parms.iter().zip(args.iter()).collect();
+            for (parm, arg) in items {
+                env.set(parm.to_string(), arg.clone());
             }
             Some(Rc::new(RefCell::new(env)))
         }
@@ -250,7 +247,6 @@ fn eval_minus_prefix_operator_expression(right: Object) -> Object {
     match right {
         Object::Integer(i) => Object::Integer(-i),
         _ => {
-            dbg!(&right);
             let msg = format!("unknown operator: -{}", right.obj_type());
             Object::Error(msg)
         }
