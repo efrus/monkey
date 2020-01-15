@@ -1,5 +1,6 @@
 mod ast;
 mod ast_test;
+mod environment;
 mod evaluator;
 mod evaluator_test;
 mod lexer;

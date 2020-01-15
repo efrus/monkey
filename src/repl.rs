@@ -1,6 +1,6 @@
+use crate::environment::Environment;
 use crate::evaluator;
 use crate::lexer::Lexer;
-use crate::object::Environment;
 use crate::parser::Parser;
 use std::cell::RefCell;
 use std::error::Error;

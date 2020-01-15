@@ -1,5 +1,6 @@
 use crate::ast::{BlockStatement, Expression, Program, Statement};
-use crate::object::{Environment, Object, ObjectType};
+use crate::environment::Environment;
+use crate::object::{Object, ObjectType};
 use std::cell::RefCell;
 use std::rc::Rc;
 
@@ -81,14 +82,13 @@ fn eval_expression(expression: Expression, env: Rc<RefCell<Environment>>) -> Obj
         Expression::CallExpression(function, arguments) => {
             let function = eval_expression(*function, env.clone());
             if is_error(&function) {
-                function
-            } else {
-                let args = eval_expressions(arguments, env);
-                if args.len() == 1 && is_error(&args[0]) {
-                    return args[0].clone();
-                }
-                Object::Null
+                return function;
             }
+            let args = eval_expressions(arguments, env);
+            if args.len() == 1 && is_error(&args[0]) {
+                return args[0].clone();
+            }
+            apply_function(function, args)
         }
         _ => Object::Null,
     }
@@ -195,6 +195,46 @@ fn eval_integer_infix_expression(operator: &str, left: Object, right: Object) ->
         };
     };
     Object::Null
+}
+
+fn apply_function(function: Object, args: Vec<Object>) -> Object {
+    match &function {
+        Object::Function(parms, body, _env) => {
+            let extended_env = extend_function_env(&function, args);
+            match extended_env {
+                Some(extended_env) => {
+                    let evaluated = eval_block_statement(body.clone(), extended_env);
+                    unwrap_return_value(evaluated)
+                }
+                _ => Object::Error("extended env error".to_string()),
+            }
+        }
+        _ => Object::Error("not a function".to_string()),
+    }
+}
+
+fn extend_function_env(function: &Object, args: Vec<Object>) -> Option<Rc<RefCell<Environment>>> {
+    match function {
+        Object::Function(parms, _body, env) => {
+            let mut env = Environment::new_enclosed_environment(env.clone());
+            let mut iter = parms.iter().zip(args.iter());
+            match iter.next() {
+                Some((parm, arg)) => {
+                    env.set(parm.to_string(), arg.clone());
+                }
+                _ => (),
+            }
+            Some(Rc::new(RefCell::new(env)))
+        }
+        _ => None,
+    }
+}
+
+fn unwrap_return_value(obj: Object) -> Object {
+    match obj {
+        Object::ReturnValue(val) => *val,
+        _ => obj,
+    }
 }
 
 fn eval_bang_operator_expression(right: Object) -> Object {

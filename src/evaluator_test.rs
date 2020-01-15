@@ -1,8 +1,9 @@
 #[cfg(test)]
 mod tests {
+    use crate::environment::Environment;
     use crate::evaluator;
     use crate::lexer::Lexer;
-    use crate::object::{Environment, Object};
+    use crate::object::Object;
     use crate::parser::Parser;
     use std::cell::RefCell;
     use std::rc::Rc;
