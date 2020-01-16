@@ -89,7 +89,7 @@ impl<'a> Parser<'a> {
         if let Some(Token::Ident(identifier)) = self.peek_token.clone() {
             self.next_token();
 
-            let name = self.get_current_token().to_string();
+            //let _name = self.get_current_token().to_string();
 
             if !self.expect_peek(Token::Assign) {
                 return None;

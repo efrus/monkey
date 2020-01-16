@@ -38,7 +38,6 @@ fn eval_statement(statement: Statement, env: Rc<RefCell<Environment>>) -> Object
             }
             val
         }
-        _ => Object::Null,
     }
 }
 
@@ -199,7 +198,7 @@ fn eval_integer_infix_expression(operator: &str, left: Object, right: Object) ->
 
 fn apply_function(function: Object, args: Vec<Object>) -> Object {
     match &function {
-        Object::Function(parms, body, _env) => {
+        Object::Function(_parms, body, _env) => {
             let extended_env = extend_function_env(&function, args);
             match extended_env {
                 Some(extended_env) => {
