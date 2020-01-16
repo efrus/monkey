@@ -43,9 +43,25 @@ impl<'a> Lexer<'a> {
         num
     }
 
+    fn read_string(&mut self) -> String {
+        let mut s = String::new();
+        while let Some(&c) = self.peek_char() {
+            dbg!(&c);
+            if c == '"' || c == '\u{0}' || c == '\"' {
+                self.read_char().unwrap();
+                break;
+            } else if c == '\n' {
+                self.read_char().unwrap();
+            } else {
+                s.push(self.read_char().unwrap());
+            }
+        }
+        s
+    }
+
     fn skip_whitespace(&mut self) {
         while let Some(&c) = self.peek_char() {
-            if c.is_whitespace() {
+            if c.is_whitespace() || c == '\n' {
                 self.read_char().unwrap();
             } else {
                 break;
@@ -89,6 +105,10 @@ impl<'a> Lexer<'a> {
                 ')' => Some(Token::RParen),
                 '{' => Some(Token::LBrace),
                 '}' => Some(Token::RBrace),
+                '"' => {
+                    let s = self.read_string();
+                    Some(Token::String(s))
+                }
                 _ => {
                     if is_letter(c) {
                         Some(Token::lookup_ident(self.read_identifier(c)))

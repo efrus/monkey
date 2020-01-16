@@ -5,8 +5,7 @@ mod tests {
 
     #[test]
     fn test_next_token() {
-        let input = "
-let five = 5;
+        let input = "let five = 5;
 let ten = 10;
 
 let add = fn(x, y) {
@@ -18,15 +17,17 @@ let result = add(five, ten);
 5 < 10 > 5;
 
 if (5 < 10) {
-	return true;
+    return true;
 } else {
-	return false;
+    return false;
 }
 
 10 == 10;
 10 != 9;
-
+\"foobar\"
+\"foo bar\"
 ";
+
         let mut tests = Vec::new();
         tests.push(Some(Token::Let));
         tests.push(Some(Token::Ident("five".to_string())));
@@ -103,6 +104,8 @@ if (5 < 10) {
         tests.push(Some(Token::NotEq));
         tests.push(Some(Token::Int("9".to_string())));
         tests.push(Some(Token::Semicolon));
+        tests.push(Some(Token::String("foobar".to_string())));
+        tests.push(Some(Token::String("foo bar".to_string())));
         tests.push(None);
         let mut l = Lexer::new(input);
 

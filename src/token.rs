@@ -8,6 +8,7 @@ pub enum Token {
     // Identifiers + literals
     Ident(String),
     Int(String),
+    String(String),
 
     // Operators
     Assign,
@@ -63,6 +64,7 @@ impl fmt::Display for Token {
         let output = match &self {
             Token::Ident(s) => s,
             Token::Int(s) => s,
+            Token::String(s) => s,
             Token::Assign => "=",
             Token::Asterisk => "*",
             Token::Bang => "!",
