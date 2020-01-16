@@ -779,4 +779,35 @@ mod tests {
             assert_eq!(actual, expected);
         }
     }
+
+    #[test]
+    fn test_string_literal_expression() {
+        let input = "hello world";
+
+        let lexer = Lexer::new(input);
+        let mut parser = Parser::new(lexer);
+        let program = parser.parse_program();
+        check_parser_errors(&parser);
+
+        if let Some(statement) = program.statements.into_iter().next() {
+            match statement {
+                Statement::Expression(expr) => match expr {
+                    Expression::StringLiteral(s) => {
+                        if s != input {
+                            println!("literal value not {}, got={}", input, s);
+                            assert!(false);
+                        }
+                    }
+                    _ => {
+                        println!("Expected string, got something else.");
+                        assert!(false);
+                    }
+                },
+                _ => {
+                    println!("Expected Statement expr, got something else.");
+                    assert!(false);
+                }
+            }
+        }
+    }
 }

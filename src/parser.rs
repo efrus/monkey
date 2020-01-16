@@ -174,6 +174,13 @@ impl<'a> Parser<'a> {
         }
     }
 
+    fn parse_string_literal(&self) -> Expression {
+        match &self.current_token {
+            Some(Token::String(s)) => Expression::StringLiteral(s.to_string()),
+            _ => Expression::None,
+        }
+    }
+
     fn parse_prefix_expression(&mut self) -> Expression {
         let operator = self.get_current_token().to_string();
         self.next_token();
@@ -379,6 +386,7 @@ impl<'a> Parser<'a> {
             Some(Token::LParen) => self.parse_grouped_expression(),
             Some(Token::If) => self.parse_if_expression(),
             Some(Token::Function) => self.parse_function_literal(),
+            Some(Token::String(_)) => self.parse_string_literal(),
             _ => Expression::None,
         }
     }

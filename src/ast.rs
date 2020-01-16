@@ -13,6 +13,7 @@ pub enum Statement {
 pub enum Expression {
     Ident(Identifier),
     IntegerLiteral(i64),
+    StringLiteral(String),
     Prefix(Identifier, Box<Expression>),
     Infix(Box<Expression>, Identifier, Box<Expression>),
     Boolean(bool),
@@ -58,6 +59,7 @@ impl fmt::Display for Expression {
         let output = match &self {
             Expression::Ident(ident) => ident.to_string(),
             Expression::IntegerLiteral(int) => int.to_string(),
+            Expression::StringLiteral(s) => s.to_string(),
             Expression::Prefix(operator, expr) => format!("({}{})", operator, expr),
             Expression::Infix(left, operator, right) => {
                 format!("({} {} {})", left, operator, right)
