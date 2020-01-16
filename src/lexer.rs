@@ -46,14 +46,11 @@ impl<'a> Lexer<'a> {
     fn read_string(&mut self) -> String {
         let mut s = String::new();
         while let Some(&c) = self.peek_char() {
-            dbg!(&c);
+            let ch = self.read_char().unwrap();
             if c == '"' || c == '\u{0}' || c == '\"' {
-                self.read_char().unwrap();
                 break;
-            } else if c == '\n' {
-                self.read_char().unwrap();
-            } else {
-                s.push(self.read_char().unwrap());
+            } else if c != '\n' {
+                s.push(ch);
             }
         }
         s
