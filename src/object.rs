@@ -11,6 +11,8 @@ pub enum Object {
     ReturnValue(Box<Object>),
     Error(String),
     Function(Vec<Identifier>, BlockStatement, Rc<RefCell<Environment>>),
+    String(String),
+    BuiltIn,
     Null,
 }
 
@@ -22,6 +24,8 @@ pub enum ObjectType {
     Boolean,
     ReturnValue,
     Function,
+    String,
+    BuiltIn,
 }
 
 impl Object {
@@ -35,6 +39,8 @@ impl Object {
             Object::Function(parms, body, _) => {
                 format!("fn({}) {{\n{}\n}}", parms.join(", "), body.to_string())
             }
+            Object::String(s) => s.to_string(),
+            Object::BuiltIn => "builtin function".to_string(),
         }
     }
 
@@ -46,6 +52,8 @@ impl Object {
             Object::ReturnValue(_) => ObjectType::ReturnValue,
             Object::Error(_) => ObjectType::Error,
             Object::Function(_, _, _) => ObjectType::Function,
+            Object::String(_) => ObjectType::String,
+            Object::BuiltIn => ObjectType::BuiltIn,
         }
     }
 }
@@ -59,6 +67,8 @@ impl fmt::Display for ObjectType {
             ObjectType::Boolean => "BOOLEAN",
             ObjectType::ReturnValue => "RETURN_VALUE",
             ObjectType::Function => "FUNCTION",
+            ObjectType::String => "STRING",
+            ObjectType::BuiltIn => "BUILTIN",
         };
         write!(f, "{}", output)
     }

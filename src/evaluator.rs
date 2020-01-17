@@ -89,6 +89,7 @@ fn eval_expression(expression: Expression, env: Rc<RefCell<Environment>>) -> Obj
             }
             apply_function(function, args)
         }
+        Expression::StringLiteral(s) => Object::String(s),
         _ => Object::Null,
     }
 }
@@ -156,6 +157,10 @@ fn eval_infix_expression(operator: &str, left: Object, right: Object) -> Object 
                     right.obj_type()
                 );
                 return Object::Error(msg);
+            } else if left.obj_type() == ObjectType::String
+                && right.obj_type() == ObjectType::String
+            {
+                return eval_string_infix_expression(operator.to_string(), left, right);
             } else {
                 let msg = format!(
                     "unknown operator: {} {} {}",
@@ -194,6 +199,30 @@ fn eval_integer_infix_expression(operator: &str, left: Object, right: Object) ->
         };
     };
     Object::Null
+}
+
+fn eval_string_infix_expression(operator: String, left: Object, right: Object) -> Object {
+    if operator != "+" {
+        let msg = format!(
+            "unknown operator: {} {} {}",
+            left.obj_type(),
+            operator,
+            right.obj_type()
+        );
+        return Object::Error(msg);
+    }
+
+    let left_val = match left {
+        Object::String(s) => s,
+        _ => String::from(""),
+    };
+
+    let right_val = match right {
+        Object::String(s) => s,
+        _ => String::from(""),
+    };
+
+    Object::String(format!("{}{}", left_val, right_val))
 }
 
 fn apply_function(function: Object, args: Vec<Object>) -> Object {

@@ -191,6 +191,7 @@ mod tests {
                 "unknown operator: BOOLEAN + BOOLEAN",
             ),
             ("foobar", "identifier not found: foobar"),
+            ("\"Hello\" - \"World", "unknown operator: STRING - STRING"),
         ];
 
         for (input, expected) in tests {
@@ -267,6 +268,34 @@ mod tests {
             let obj = test_eval(input);
             dbg!(&obj);
             test_integer_object(obj, expected);
+        }
+    }
+
+    #[test]
+    fn test_string_literal() {
+        let input = "\"Hello World!\"".to_string();
+        test_string(input);
+    }
+
+    #[test]
+    fn test_string_concatenation() {
+        let input = "\"Hello\" + \" \" + \"World!\"".to_string();
+        test_string(input);
+    }
+
+    fn test_string(input: String) {
+        let evaluated = test_eval(&input);
+        match evaluated {
+            Object::String(s) => {
+                if s != "Hello World!" {
+                    println!("string has wrong value. got={}", s);
+                    assert!(false);
+                }
+            }
+            _ => {
+                println!("object is not String. got={}", evaluated.obj_type());
+                assert!(false);
+            }
         }
     }
 }
