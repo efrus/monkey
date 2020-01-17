@@ -26,6 +26,7 @@ if (5 < 10) {
 10 != 9;
 \"foobar\"
 \"foo bar\"
+\"hello world\"
 ";
 
         let mut tests = Vec::new();
@@ -106,6 +107,7 @@ if (5 < 10) {
         tests.push(Some(Token::Semicolon));
         tests.push(Some(Token::String("foobar".to_string())));
         tests.push(Some(Token::String("foo bar".to_string())));
+        tests.push(Some(Token::String("hello world".to_string())));
         tests.push(None);
         let mut l = Lexer::new(input);
 

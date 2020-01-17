@@ -18,6 +18,7 @@ impl<'a> Lexer<'a> {
     }
 
     fn read_identifier(&mut self, c: char) -> String {
+        dbg!("read ident");
         let mut s = String::new();
         s.push(c);
         while let Some(&c) = self.peek_char() {
@@ -44,6 +45,7 @@ impl<'a> Lexer<'a> {
     }
 
     fn read_string(&mut self) -> String {
+        dbg!("read string");
         let mut s = String::new();
         while let Some(&c) = self.peek_char() {
             let ch = self.read_char().unwrap();

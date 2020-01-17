@@ -782,7 +782,7 @@ mod tests {
 
     #[test]
     fn test_string_literal_expression() {
-        let input = "hello world";
+        let input = "\"hello world\"";
 
         let lexer = Lexer::new(input);
         let mut parser = Parser::new(lexer);
@@ -793,10 +793,14 @@ mod tests {
             match statement {
                 Statement::Expression(expr) => match expr {
                     Expression::StringLiteral(s) => {
-                        if s != input {
-                            println!("literal value not {}, got={}", input, s);
+                        if s != "hello world" {
+                            println!("literal value not {}, got={}", "hello world", s);
                             assert!(false);
                         }
+                    }
+                    Expression::Ident(i) => {
+                        dbg!("got ident and wanted string!");
+                        assert!(false);
                     }
                     _ => {
                         println!("Expected string, got something else.");
