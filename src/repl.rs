@@ -1,5 +1,5 @@
 use crate::environment::Environment;
-use crate::evaluator;
+use crate::evaluator::evaluator;
 use crate::lexer::Lexer;
 use crate::parser::Parser;
 use std::cell::RefCell;

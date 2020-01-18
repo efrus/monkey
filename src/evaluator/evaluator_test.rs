@@ -298,4 +298,46 @@ mod tests {
             }
         }
     }
+
+    #[test]
+    fn test_builtin_functions() {
+        enum Mixed {
+            Text(String),
+            Int(i64),
+        }
+        let tests = vec![
+            ("len(\"\")", Mixed::Int(0)),
+            ("len(\"four\")", Mixed::Int(4)),
+            ("len(\"hello world\")", Mixed::Int(11)),
+            (
+                "len(\"1\")",
+                Mixed::Text("argument to 'len' not supported, got INTEGER".to_string()),
+            ),
+            (
+                "len(\"one\", \"two\")",
+                Mixed::Text("wrong number of arguments.  got=2, want=1".to_string()),
+            ),
+        ];
+
+        for (input, expected) in tests {
+            let evaluated = test_eval(&input);
+            match expected {
+                Mixed::Int(i) => {
+                    test_integer_object(evaluated, i);
+                }
+                Mixed::Text(s) => match evaluated {
+                    Object::Error(err) => {
+                        if err != s {
+                            println!("wrong error message. expected={}, got={}", s, err);
+                            assert!(false);
+                        }
+                    }
+                    _ => {
+                        println!("object is not error.");
+                        assert!(false);
+                    }
+                },
+            }
+        }
+    }
 }
