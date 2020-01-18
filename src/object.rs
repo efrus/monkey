@@ -114,7 +114,7 @@ fn builtin_len(args: Vec<Object>) -> Object {
             Object::Integer(l)
         }
         _ => {
-            let msg = "argument to len not supported.".to_string();
+            let msg = "argument to 'len' not supported.".to_string();
             Object::Error(msg)
         }
     }

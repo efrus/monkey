@@ -310,12 +310,12 @@ mod tests {
             ("len(\"four\")", Mixed::Int(4)),
             ("len(\"hello world\")", Mixed::Int(11)),
             (
-                "len(\"1\")",
-                Mixed::Text("argument to 'len' not supported, got INTEGER".to_string()),
+                "len(1)",
+                Mixed::Text("argument to 'len' not supported.".to_string()),
             ),
             (
                 "len(\"one\", \"two\")",
-                Mixed::Text("wrong number of arguments.  got=2, want=1".to_string()),
+                Mixed::Text("wrong number of arguments. got=2, want=1".to_string()),
             ),
         ];
 
