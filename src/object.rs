@@ -5,6 +5,11 @@ use std::fmt;
 use std::rc::Rc;
 
 #[derive(Debug, Clone, PartialEq)]
+pub enum BuiltIn {
+    Len,
+}
+
+#[derive(Debug, Clone, PartialEq)]
 pub enum Object {
     Integer(i64),
     Boolean(bool),
@@ -12,7 +17,7 @@ pub enum Object {
     Error(String),
     Function(Vec<Identifier>, BlockStatement, Rc<RefCell<Environment>>),
     String(String),
-    BuiltIn,
+    BuiltIn(BuiltIn),
     Null,
 }
 
@@ -40,7 +45,7 @@ impl Object {
                 format!("fn({}) {{\n{}\n}}", parms.join(", "), body.to_string())
             }
             Object::String(s) => s.to_string(),
-            Object::BuiltIn => "builtin function".to_string(),
+            Object::BuiltIn(bi) => bi.to_string(),
         }
     }
 
@@ -53,7 +58,7 @@ impl Object {
             Object::Error(_) => ObjectType::Error,
             Object::Function(_, _, _) => ObjectType::Function,
             Object::String(_) => ObjectType::String,
-            Object::BuiltIn => ObjectType::BuiltIn,
+            Object::BuiltIn(_) => ObjectType::BuiltIn,
         }
     }
 }
@@ -71,5 +76,46 @@ impl fmt::Display for ObjectType {
             ObjectType::BuiltIn => "BUILTIN",
         };
         write!(f, "{}", output)
+    }
+}
+
+impl fmt::Display for BuiltIn {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let output = match &self {
+            BuiltIn::Len => "Len",
+        };
+        write!(f, "{}", output)
+    }
+}
+
+impl BuiltIn {
+    pub fn get_fn(&self, args: Vec<Object>) -> Object {
+        match self {
+            BuiltIn::Len => builtin_len(args),
+        }
+    }
+
+    pub fn lookup_builtin(s: &str) -> Option<BuiltIn> {
+        match s {
+            "len" => Some(BuiltIn::Len),
+            _ => None,
+        }
+    }
+}
+
+fn builtin_len(args: Vec<Object>) -> Object {
+    if args.len() != 1 {
+        let msg = format!("wrong number of arguments. got={}, want=1", args.len());
+        return Object::Error(msg);
+    }
+    match &args[0] {
+        Object::String(s) => {
+            let l = s.len() as i64;
+            Object::Integer(l)
+        }
+        _ => {
+            let msg = "argument to len not supported.".to_string();
+            Object::Error(msg)
+        }
     }
 }

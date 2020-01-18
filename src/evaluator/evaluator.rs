@@ -1,6 +1,6 @@
 use crate::ast::{BlockStatement, Expression, Program, Statement};
 use crate::environment::Environment;
-use crate::object::{Object, ObjectType};
+use crate::object::{BuiltIn, Object, ObjectType};
 use std::cell::RefCell;
 use std::rc::Rc;
 
@@ -108,10 +108,13 @@ fn eval_block_statement(block_statement: BlockStatement, env: Rc<RefCell<Environ
 fn eval_identifier(ident: String, env: Rc<RefCell<Environment>>) -> Object {
     match env.borrow().get(ident.clone()) {
         Some(val) => val.clone(),
-        None => {
-            let msg = format!("identifier not found: {}", ident);
-            Object::Error(msg)
-        }
+        None => match BuiltIn::lookup_builtin(&ident) {
+            Some(built_in) => Object::BuiltIn(built_in),
+            None => {
+                let msg = format!("identifier not found: {}", ident);
+                Object::Error(msg)
+            }
+        },
     }
 }
 
@@ -237,6 +240,7 @@ fn apply_function(function: Object, args: Vec<Object>) -> Object {
                 _ => Object::Error("extended env error".to_string()),
             }
         }
+        Object::BuiltIn(built_in) => built_in.get_fn(args),
         _ => Object::Error("not a function".to_string()),
     }
 }
