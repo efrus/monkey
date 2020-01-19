@@ -1,3 +1,4 @@
+use crate::ast;
 use crate::ast::{BlockStatement, Expression, Identifier, Program, Statement};
 use crate::lexer::Lexer;
 use crate::token::Token;
@@ -274,6 +275,30 @@ impl<'a> Parser<'a> {
         Expression::ArrayLiteral(elements)
     }
 
+    fn parse_hash_literal(&mut self) -> Expression {
+        let mut pairs = vec![];
+
+        while !self.peek_token_is(&Token::RBrace) {
+            self.next_token();
+            let key = self.parse_expression(Precedence::LOWEST);
+            if !self.expect_peek(Token::Colon) {
+                return Expression::None;
+            }
+
+            self.next_token();
+            let value = self.parse_expression(Precedence::LOWEST);
+            ast::hash_put(&mut pairs, key, value);
+            if !self.peek_token_is(&Token::RBrace) && !self.expect_peek(Token::Comma) {
+                return Expression::None;
+            }
+        }
+
+        if !self.expect_peek(Token::RBrace) {
+            return Expression::None;
+        }
+        Expression::HashLiteral(pairs)
+    }
+
     fn parse_expression_list(&mut self, token: Token) -> Vec<Expression> {
         let mut args = vec![];
         if self.peek_token_is(&token) {
@@ -404,6 +429,7 @@ impl<'a> Parser<'a> {
             Some(Token::Function) => self.parse_function_literal(),
             Some(Token::String(_)) => self.parse_string_literal(),
             Some(Token::LBracket) => self.parse_array_literal(),
+            Some(Token::LBrace) => self.parse_hash_literal(),
             _ => Expression::None,
         }
     }

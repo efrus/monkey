@@ -1,5 +1,6 @@
 #[cfg(test)]
 mod tests {
+    use crate::ast;
     use crate::ast::{Expression, Statement};
     use crate::lexer::Lexer;
     use crate::parser::Parser;
@@ -872,6 +873,140 @@ mod tests {
                     }
                     _ => {
                         println!("Expected index expression, got something else.");
+                        assert!(false);
+                    }
+                },
+                _ => {
+                    println!("Expected Statement expr, got something else.");
+                    assert!(false);
+                }
+            }
+        }
+    }
+
+    #[test]
+    fn test_parsing_hash_literals_string_keys() {
+        let input = "{\"one\": 1, \"two\": 2, \"three\": 3}";
+
+        let lexer = Lexer::new(input);
+        let mut parser = Parser::new(lexer);
+        let program = parser.parse_program();
+        check_parser_errors(&parser);
+
+        if let Some(statement) = program.statements.into_iter().next() {
+            match statement {
+                Statement::Expression(expr) => match expr {
+                    Expression::HashLiteral(pairs) => {
+                        assert_eq!(pairs.len(), 3);
+                        let expected = vec![
+                            (
+                                Expression::StringLiteral("one".to_string()),
+                                Expression::IntegerLiteral(1),
+                            ),
+                            (
+                                Expression::StringLiteral("two".to_string()),
+                                Expression::IntegerLiteral(2),
+                            ),
+                            (
+                                Expression::StringLiteral("three".to_string()),
+                                Expression::IntegerLiteral(3),
+                            ),
+                        ];
+                        for (k, v) in pairs {
+                            match &k {
+                                Expression::StringLiteral(_literal) => {
+                                    match ast::hash_get(&expected, &k) {
+                                        Expression::IntegerLiteral(i) => {
+                                            test_integer_literal(&v, i);
+                                        }
+                                        _ => {
+                                            println!("expected int, got something else.");
+                                            assert!(false);
+                                        }
+                                    }
+                                }
+                                _ => {
+                                    println!("expected string, got something else.");
+                                    assert!(false);
+                                }
+                            }
+                        }
+                    }
+                    _ => {
+                        println!("Expected hash literal, got something else.");
+                        assert!(false);
+                    }
+                },
+                _ => {
+                    println!("Expected Statement expr, got something else.");
+                    assert!(false);
+                }
+            }
+        }
+    }
+
+    #[test]
+    fn test_parsing_empty_hash_literal() {
+        let input = "{}";
+
+        let lexer = Lexer::new(input);
+        let mut parser = Parser::new(lexer);
+        let program = parser.parse_program();
+        check_parser_errors(&parser);
+
+        if let Some(statement) = program.statements.into_iter().next() {
+            match statement {
+                Statement::Expression(expr) => match expr {
+                    Expression::HashLiteral(pairs) => assert_eq!(pairs.len(), 0),
+                    _ => {
+                        println!("Expected hash literal, got something else.");
+                        assert!(false);
+                    }
+                },
+                _ => {
+                    println!("Expected Statement expr, got something else.");
+                    assert!(false);
+                }
+            }
+        }
+    }
+
+    #[test]
+    fn test_parsing_hash_literals_with_expressions() {
+        let input = "{\"one\": 0 + 1, \"two\": 10 - 8, \"three\": 15 / 5}";
+
+        let lexer = Lexer::new(input);
+        let mut parser = Parser::new(lexer);
+        let program = parser.parse_program();
+        check_parser_errors(&parser);
+
+        if let Some(statement) = program.statements.into_iter().next() {
+            match statement {
+                Statement::Expression(expr) => match expr {
+                    Expression::HashLiteral(pairs) => {
+                        assert_eq!(pairs.len(), 3);
+                        let expected = vec![
+                            (Expression::StringLiteral("one".to_string()), (0, "+", 1)),
+                            (Expression::StringLiteral("two".to_string()), (10, "-", 8)),
+                            (Expression::StringLiteral("three".to_string()), (15, "/", 5)),
+                        ];
+                        let mut i = 0;
+                        for (k, v) in pairs {
+                            let (_, e) = expected[i];
+                            match &k {
+                                Expression::StringLiteral(_literal) => {
+                                    test_infix_expression_int(&v.to_string(), e.0, e.1, e.2);
+                                }
+                                _ => {
+                                    println!("expected string literal for key.");
+                                    assert!(false);
+                                }
+                            }
+                            i += 1;
+                        }
+                    }
+                    _ => {
+                        println!("Expected hash literal, got something else.");
                         assert!(false);
                     }
                 },
