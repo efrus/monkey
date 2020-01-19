@@ -28,6 +28,7 @@ if (5 < 10) {
 \"foo bar\"
 \"hello world\"
 [1, 2];
+{\"foo\": \"bar\"}
 ";
 
         let mut tests = Vec::new();
@@ -115,6 +116,11 @@ if (5 < 10) {
         tests.push(Some(Token::Int("2".to_string())));
         tests.push(Some(Token::RBracket));
         tests.push(Some(Token::Semicolon));
+        tests.push(Some(Token::LBrace));
+        tests.push(Some(Token::String("foo".to_string())));
+        tests.push(Some(Token::Colon));
+        tests.push(Some(Token::String("bar".to_string())));
+        tests.push(Some(Token::RBrace));
         tests.push(None);
         let mut l = Lexer::new(input);
 

@@ -27,6 +27,7 @@ pub enum Token {
     // Delimiters
     Comma,
     Semicolon,
+    Colon,
 
     // Grouping
     LBrace,
@@ -92,6 +93,7 @@ impl fmt::Display for Token {
             Token::Let => "let",
             Token::Return => "return",
             Token::True => "true",
+            Token::Colon => ":",
             _ => "ILLEGAL",
         };
         write!(f, "{}", output)

@@ -22,6 +22,7 @@ pub enum Expression {
     CallExpression(Box<Expression>, Vec<Expression>),
     ArrayLiteral(Vec<Expression>),
     IndexExpression(Box<Expression>, Box<Expression>),
+    HashLiteral(Vec<(Expression, Expression)>),
     None,
 }
 
@@ -93,6 +94,13 @@ impl fmt::Display for Expression {
             }
             Expression::IndexExpression(left, index) => {
                 format!("({}[{}])", left.to_string(), index.to_string())
+            }
+            Expression::HashLiteral(pairs) => {
+                let mut s = vec![];
+                for (k, v) in pairs {
+                    s.push(format!("{}:{}", k.to_string(), v.to_string()));
+                }
+                format!("{{{}}}", s.join(", "))
             }
             Expression::None => String::from(""),
         };

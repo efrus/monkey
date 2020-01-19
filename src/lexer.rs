@@ -108,6 +108,7 @@ impl<'a> Lexer<'a> {
                 }
                 '[' => Some(Token::LBracket),
                 ']' => Some(Token::RBracket),
+                ':' => Some(Token::Colon),
                 _ => {
                     if is_letter(c) {
                         Some(Token::lookup_ident(self.read_identifier(c)))
