@@ -89,6 +89,24 @@ fn eval_expression(expression: Expression, env: Rc<RefCell<Environment>>) -> Obj
             }
             apply_function(function, args)
         }
+        Expression::ArrayLiteral(elements) => {
+            let elements = eval_expressions(elements, env);
+            if elements.len() == 1 && is_error(&elements[0]) {
+                return elements[0].clone();
+            }
+            Object::Array(elements)
+        }
+        Expression::IndexExpression(left, index) => {
+            let left = eval_expression(*left, env.clone());
+            if is_error(&left) {
+                return left;
+            }
+            let index = eval_expression(*index, env);
+            if is_error(&index) {
+                return index;
+            }
+            eval_index_expression(left, index)
+        }
         Expression::StringLiteral(s) => Object::String(s),
         _ => Object::Null,
     }
@@ -139,6 +157,31 @@ fn eval_prefix_expression(operator: &str, right: Object) -> Object {
             let msg = format!("unknown operator: {}{}", operator, right.obj_type());
             Object::Error(msg)
         }
+    }
+}
+
+fn eval_index_expression(left: Object, index: Object) -> Object {
+    if left.obj_type() == ObjectType::Array && index.obj_type() == ObjectType::Integer {
+        return eval_array_index_expression(left, index);
+    }
+    let msg = format!("index operator not supported: {}", left.obj_type());
+    Object::Error(msg)
+}
+
+fn eval_array_index_expression(array: Object, index: Object) -> Object {
+    match array {
+        Object::Array(elements) => match index {
+            Object::Integer(i) => {
+                let idx = i as usize;
+                let max = elements.len() - 1;
+                if idx > max {
+                    return Object::Null;
+                }
+                return elements[idx].clone();
+            }
+            _ => Object::Null,
+        },
+        _ => Object::Null,
     }
 }
 

@@ -212,28 +212,6 @@ impl<'a> Parser<'a> {
         Expression::CallExpression(function, args)
     }
 
-    /* fn parse_call_arguments(&mut self) -> Vec<Expression> {
-        let mut args = vec![];
-        if self.peek_token_is(&Token::RParen) {
-            self.next_token();
-            return args;
-        }
-
-        self.next_token();
-        args.push(self.parse_expression(Precedence::LOWEST));
-
-        while self.peek_token_is(&Token::Comma) {
-            self.next_token();
-            self.next_token();
-            args.push(self.parse_expression(Precedence::LOWEST));
-        }
-
-        if !self.expect_peek(Token::RParen) {
-            return vec![];
-        }
-        args
-    }*/
-
     fn parse_boolean(&mut self) -> Expression {
         Expression::Boolean(self.current_token_is(&Token::True))
     }

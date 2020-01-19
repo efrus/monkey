@@ -37,13 +37,13 @@ mod tests {
 
         for (input, expected) in tests {
             let evaluated = test_eval(input);
-            test_integer_object(evaluated, expected);
+            test_integer_object(&evaluated, expected);
         }
     }
 
-    fn test_integer_object(obj: Object, expected: i64) {
+    fn test_integer_object(obj: &Object, expected: i64) {
         match obj {
-            Object::Integer(i) if i == expected => (),
+            Object::Integer(i) if i == &expected => (),
             Object::Integer(i) => {
                 println!("object has wrong int value. got={}, want={}", i, expected);
                 assert!(false);
@@ -130,7 +130,7 @@ mod tests {
         for (input, expected) in tests {
             let evaluated = test_eval(input);
             match expected {
-                Some(i) => test_integer_object(evaluated, i),
+                Some(i) => test_integer_object(&evaluated, i),
                 None => test_null_object(evaluated),
             }
         }
@@ -165,7 +165,7 @@ mod tests {
 
         for (input, expected) in tests {
             let evaluated = test_eval(input);
-            test_integer_object(evaluated, expected);
+            test_integer_object(&evaluated, expected);
         }
     }
 
@@ -223,7 +223,7 @@ mod tests {
         for (input, expected) in tests {
             let obj = test_eval(input);
             dbg!(&obj);
-            test_integer_object(obj, expected);
+            test_integer_object(&obj, expected);
         }
     }
 
@@ -267,7 +267,7 @@ mod tests {
         for (input, expected) in tests {
             let obj = test_eval(input);
             dbg!(&obj);
-            test_integer_object(obj, expected);
+            test_integer_object(&obj, expected);
         }
     }
 
@@ -323,7 +323,7 @@ mod tests {
             let evaluated = test_eval(&input);
             match expected {
                 Mixed::Int(i) => {
-                    test_integer_object(evaluated, i);
+                    test_integer_object(&evaluated, i);
                 }
                 Mixed::Text(s) => match evaluated {
                     Object::Error(err) => {
@@ -337,6 +337,53 @@ mod tests {
                         assert!(false);
                     }
                 },
+            }
+        }
+    }
+
+    #[test]
+    fn test_array_literals() {
+        let input = "[1, 2 * 2, 3 + 3]";
+        let evaluated = test_eval(input);
+        match evaluated {
+            Object::Array(elements) => {
+                assert_eq!(elements.len(), 3);
+                test_integer_object(&elements[0], 1);
+                test_integer_object(&elements[1], 4);
+                test_integer_object(&elements[2], 6);
+            }
+            _ => {
+                println!("object is not array");
+                assert!(false);
+            }
+        }
+    }
+
+    #[test]
+    fn test_array_index_expressions() {
+        let tests = vec![
+            ("[1, 2, 3][0]", Some(1)),
+            ("[1, 2, 3][1]", Some(2)),
+            ("[1, 2, 3][2]", Some(3)),
+            ("let i = 0; [1][i];", Some(1)),
+            ("[1, 2, 3][1 + 1];", Some(3)),
+            ("let myArray = [1, 2, 3]; myArray[2];", Some(3)),
+            (
+                "let myArray = [1, 2, 3]; myArray[0] + myArray[1] + myArray[2];",
+                Some(6),
+            ),
+            (
+                "let myArray = [1, 2, 3]; let i = myArray[0]; myArray[i]",
+                Some(2),
+            ),
+            ("[1, 2, 3][3]", None),
+            ("[1, 2, 3][-1]", None),
+        ];
+        for (input, expected) in tests {
+            let evaluated = test_eval(input);
+            match expected {
+                Some(i) => test_integer_object(&evaluated, i),
+                None => (),
             }
         }
     }

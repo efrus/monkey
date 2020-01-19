@@ -18,6 +18,7 @@ pub enum Object {
     Function(Vec<Identifier>, BlockStatement, Rc<RefCell<Environment>>),
     String(String),
     BuiltIn(BuiltIn),
+    Array(Vec<Object>),
     Null,
 }
 
@@ -31,6 +32,7 @@ pub enum ObjectType {
     Function,
     String,
     BuiltIn,
+    Array,
 }
 
 impl Object {
@@ -46,6 +48,13 @@ impl Object {
             }
             Object::String(s) => s.to_string(),
             Object::BuiltIn(bi) => bi.to_string(),
+            Object::Array(elements) => {
+                let mut s = vec![];
+                for element in elements {
+                    s.push(element.inspect());
+                }
+                format!("[{}]", s.join(", "))
+            }
         }
     }
 
@@ -59,6 +68,7 @@ impl Object {
             Object::Function(_, _, _) => ObjectType::Function,
             Object::String(_) => ObjectType::String,
             Object::BuiltIn(_) => ObjectType::BuiltIn,
+            Object::Array(_) => ObjectType::Array,
         }
     }
 }
@@ -74,6 +84,7 @@ impl fmt::Display for ObjectType {
             ObjectType::Function => "FUNCTION",
             ObjectType::String => "STRING",
             ObjectType::BuiltIn => "BUILTIN",
+            ObjectType::Array => "ARRAY",
         };
         write!(f, "{}", output)
     }
