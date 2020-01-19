@@ -304,6 +304,7 @@ mod tests {
         enum Mixed {
             Text(String),
             Int(i64),
+            Array(Vec<i64>),
         }
         let tests = vec![
             ("len(\"\")", Mixed::Int(0)),
@@ -317,6 +318,11 @@ mod tests {
                 "len(\"one\", \"two\")",
                 Mixed::Text("wrong number of arguments. got=2, want=1".to_string()),
             ),
+            ("len([1,2,3,4])", Mixed::Int(4)),
+            ("first([1,2,3,4])", Mixed::Int(1)),
+            ("last([1,2,3,4])", Mixed::Int(4)),
+            ("rest([1,2,3,4])", Mixed::Array(vec![2, 3, 4])),
+            ("push([1,2,3,4],5)", Mixed::Array(vec![1, 2, 3, 4, 5])),
         ];
 
         for (input, expected) in tests {
@@ -334,6 +340,20 @@ mod tests {
                     }
                     _ => {
                         println!("object is not error.");
+                        assert!(false);
+                    }
+                },
+                Mixed::Array(vec) => match evaluated {
+                    Object::Array(elements) => {
+                        assert_eq!(elements.len(), vec.len());
+                        let mut i = 0;
+                        for item in vec {
+                            test_integer_object(&elements[i], item);
+                            i += 1;
+                        }
+                    }
+                    _ => {
+                        println!("object is not array.");
                         assert!(false);
                     }
                 },

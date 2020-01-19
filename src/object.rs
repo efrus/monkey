@@ -7,6 +7,10 @@ use std::rc::Rc;
 #[derive(Debug, Clone, PartialEq)]
 pub enum BuiltIn {
     Len,
+    First,
+    Last,
+    Rest,
+    Push,
 }
 
 #[derive(Debug, Clone, PartialEq)]
@@ -94,6 +98,10 @@ impl fmt::Display for BuiltIn {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let output = match &self {
             BuiltIn::Len => "Len",
+            BuiltIn::First => "First",
+            BuiltIn::Last => "Last",
+            BuiltIn::Rest => "Rest",
+            BuiltIn::Push => "Push",
         };
         write!(f, "{}", output)
     }
@@ -103,12 +111,20 @@ impl BuiltIn {
     pub fn get_fn(&self, args: Vec<Object>) -> Object {
         match self {
             BuiltIn::Len => builtin_len(args),
+            BuiltIn::First => builtin_first(args),
+            BuiltIn::Last => builtin_last(args),
+            BuiltIn::Rest => builtin_rest(args),
+            BuiltIn::Push => builtin_push(args),
         }
     }
 
     pub fn lookup_builtin(s: &str) -> Option<BuiltIn> {
         match s {
             "len" => Some(BuiltIn::Len),
+            "first" => Some(BuiltIn::First),
+            "last" => Some(BuiltIn::Last),
+            "rest" => Some(BuiltIn::Rest),
+            "push" => Some(BuiltIn::Push),
             _ => None,
         }
     }
@@ -124,8 +140,95 @@ fn builtin_len(args: Vec<Object>) -> Object {
             let l = s.len() as i64;
             Object::Integer(l)
         }
+        Object::Array(elements) => {
+            let l = elements.len() as i64;
+            Object::Integer(l)
+        }
         _ => {
             let msg = "argument to 'len' not supported.".to_string();
+            Object::Error(msg)
+        }
+    }
+}
+
+fn builtin_first(args: Vec<Object>) -> Object {
+    if args.len() != 1 {
+        let msg = format!("wrong number of arguments. got={}, want=1", args.len());
+        return Object::Error(msg);
+    }
+    match &args[0] {
+        Object::Array(elements) => {
+            if elements.len() == 0 {
+                return Object::Null;
+            }
+            elements[0].clone()
+        }
+        _ => {
+            let msg = "argument to 'first' must be ARRAY".to_string();
+            Object::Error(msg)
+        }
+    }
+}
+
+fn builtin_last(args: Vec<Object>) -> Object {
+    if args.len() != 1 {
+        let msg = format!("wrong number of arguments. got={}, want=1", args.len());
+        return Object::Error(msg);
+    }
+    match &args[0] {
+        Object::Array(elements) => {
+            if elements.len() == 0 {
+                return Object::Null;
+            }
+
+            elements[elements.len() - 1].clone()
+        }
+        _ => {
+            let msg = "argument to 'last' must be ARRAY".to_string();
+            Object::Error(msg)
+        }
+    }
+}
+
+fn builtin_rest(args: Vec<Object>) -> Object {
+    if args.len() != 1 {
+        let msg = format!("wrong number of arguments. got={}, want=1", args.len());
+        return Object::Error(msg);
+    }
+    match &args[0] {
+        Object::Array(elements) => {
+            if elements.len() == 0 {
+                return Object::Null;
+            }
+
+            let (_head, tail) = elements.split_at(1);
+            Object::Array(tail.to_vec())
+        }
+        _ => {
+            let msg = "argument to 'rest' must be ARRAY".to_string();
+            Object::Error(msg)
+        }
+    }
+}
+
+fn builtin_push(args: Vec<Object>) -> Object {
+    if args.len() != 2 {
+        let msg = format!("wrong number of arguments. got={}, want=2", args.len());
+        return Object::Error(msg);
+    }
+    match &args[0] {
+        Object::Array(elements) => {
+            if elements.len() == 0 {
+                return Object::Null;
+            }
+
+            let mut push = vec![args[1].clone()];
+            let mut new_elements = elements.clone();
+            new_elements.append(&mut push);
+            Object::Array(new_elements)
+        }
+        _ => {
+            let msg = "argument to 'rest' must be ARRAY".to_string();
             Object::Error(msg)
         }
     }
