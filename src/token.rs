@@ -33,6 +33,8 @@ pub enum Token {
     LParen,
     RBrace,
     RParen,
+    LBracket,
+    RBracket,
 
     // Keywords
     Else,
@@ -79,6 +81,8 @@ impl fmt::Display for Token {
             Token::Semicolon => ";",
             Token::LBrace => "{",
             Token::LParen => "(",
+            Token::LBracket => "[",
+            Token::RBracket => "]",
             Token::RBrace => "}",
             Token::RParen => ")",
             Token::Else => "else",

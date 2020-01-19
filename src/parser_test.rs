@@ -537,6 +537,10 @@ mod tests {
                 println!("identifier value not {}, got {}", value, s);
                 false
             }
+            Expression::IntegerLiteral(i) => {
+                println!("got an integer here for some reason: {}", i);
+                false
+            }
             _ => {
                 println!("Expression not identifier");
                 false
@@ -733,6 +737,14 @@ mod tests {
                 "add(a + b + c * d / f + g)",
                 "add((((a + b) + ((c * d) / f)) + g))",
             ),
+            (
+                "a * [1, 2, 3, 4][b * c] * d",
+                "((a * ([1, 2, 3, 4][(b * c)])) * d)",
+            ),
+            (
+                "add(a * b[2], b[1], 2 * [1, 2][1])",
+                "add((a * (b[2])), (b[1]), (2 * ([1, 2][1])))",
+            ),
             /*("if (x < y) { x }", "if (x < y) { x; }"),
             (
                 "if (x < y) { x } else { y }",
@@ -759,15 +771,7 @@ mod tests {
             ("let x = 3", "let x = 3;"),
             ("let x = 3 + f * 8;", "let x = (3 + (f * 8))"),
             ("\"hello world\"", "\"hello world\""),
-            ("let s = \"hello world\"", "let s = \"hello world\""),
-            (
-                "a * [1, 2, 3, 4][b * c] * d",
-                "((a * ([1, 2, 3, 4][(b * c)])) * d)",
-            ),
-            (
-                "add(a * b[2], b[1], 2 * [1, 2][1])",
-                "add((a * (b[2])), (b[1]), (2 * ([1, 2][1])))",
-            ),*/
+            ("let s = \"hello world\"", "let s = \"hello world\""),*/
         ];
         for (input, expected) in tests {
             let lexer = Lexer::new(input);
@@ -804,6 +808,70 @@ mod tests {
                     }
                     _ => {
                         println!("Expected string, got something else.");
+                        assert!(false);
+                    }
+                },
+                _ => {
+                    println!("Expected Statement expr, got something else.");
+                    assert!(false);
+                }
+            }
+        }
+    }
+
+    #[test]
+    fn test_parsing_array_literals() {
+        let input = "[1, 2 * 2, 3 + 3]";
+
+        let lexer = Lexer::new(input);
+        let mut parser = Parser::new(lexer);
+        let program = parser.parse_program();
+        check_parser_errors(&parser);
+
+        if let Some(statement) = program.statements.into_iter().next() {
+            match statement {
+                Statement::Expression(expr) => match expr {
+                    Expression::ArrayLiteral(elements) => {
+                        assert_eq!(elements.len(), 3);
+                        test_integer_literal(&elements[0], 1);
+                        test_infix_expression_int(&elements[1].to_string(), 2, "*", 2);
+                        test_infix_expression_int(&elements[2].to_string(), 3, "+", 3);
+                    }
+                    _ => {
+                        println!("Expected array literal, got something else.");
+                        assert!(false);
+                    }
+                },
+                _ => {
+                    println!("Expected Statement expr, got something else.");
+                    assert!(false);
+                }
+            }
+        }
+    }
+
+    #[test]
+    fn test_parsing_index_expression() {
+        let input = "myArray[1 + 1]";
+
+        let lexer = Lexer::new(input);
+        let mut parser = Parser::new(lexer);
+        let program = parser.parse_program();
+        check_parser_errors(&parser);
+
+        if let Some(statement) = program.statements.into_iter().next() {
+            match statement {
+                Statement::Expression(expr) => match expr {
+                    Expression::IndexExpression(left, index) => {
+                        if !test_identifier(&*left, "myArray") {
+                            println!("left != myArray");
+                            assert!(false);
+                        }
+
+                        test_infix_expression_int(&*index.to_string(), 1, "+", 1);
+                    }
+                    _ => {
+                        println!("Expected index expression, got something else.");
                         assert!(false);
                     }
                 },

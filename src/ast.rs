@@ -20,6 +20,8 @@ pub enum Expression {
     IfExpression(Box<Expression>, BlockStatement, Option<BlockStatement>),
     FunctionLiteral(Vec<Identifier>, BlockStatement),
     CallExpression(Box<Expression>, Vec<Expression>),
+    ArrayLiteral(Vec<Expression>),
+    IndexExpression(Box<Expression>, Box<Expression>),
     None,
 }
 
@@ -82,6 +84,16 @@ impl fmt::Display for Expression {
                 format!("{}({})", function, args.join(", "))
             }
             Expression::FunctionLiteral(parms, body) => format!("{}({})", parms.join(", "), body),
+            Expression::ArrayLiteral(elements) => {
+                let mut e = vec![];
+                for element in elements {
+                    e.push(element.to_string());
+                }
+                format!("[{}]", e.join(", "))
+            }
+            Expression::IndexExpression(left, index) => {
+                format!("({}[{}])", left.to_string(), index.to_string())
+            }
             Expression::None => String::from(""),
         };
         write!(f, "{}", output)

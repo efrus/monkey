@@ -106,6 +106,8 @@ impl<'a> Lexer<'a> {
                     let s = self.read_string();
                     Some(Token::String(s))
                 }
+                '[' => Some(Token::LBracket),
+                ']' => Some(Token::RBracket),
                 _ => {
                     if is_letter(c) {
                         Some(Token::lookup_ident(self.read_identifier(c)))
