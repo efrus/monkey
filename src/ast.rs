@@ -119,6 +119,7 @@ impl fmt::Display for BlockStatement {
 }
 
 pub fn hash_get(map: &Vec<(Expression, Expression)>, key: &Expression) -> Expression {
+    //TODO THIS FOR PERFORMANCE LATER
     for (k, v) in map {
         if k == key {
             return v.clone();

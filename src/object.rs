@@ -40,6 +40,7 @@ pub enum BuiltIn {
     Last,
     Rest,
     Push,
+    Puts,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
@@ -126,6 +127,7 @@ impl fmt::Display for BuiltIn {
             BuiltIn::Last => "Last",
             BuiltIn::Rest => "Rest",
             BuiltIn::Push => "Push",
+            BuiltIn::Puts => "Puts",
         };
         write!(f, "{}", output)
     }
@@ -139,6 +141,7 @@ impl BuiltIn {
             BuiltIn::Last => builtin_last(args),
             BuiltIn::Rest => builtin_rest(args),
             BuiltIn::Push => builtin_push(args),
+            BuiltIn::Puts => builtin_puts(args),
         }
     }
 
@@ -149,6 +152,7 @@ impl BuiltIn {
             "last" => Some(BuiltIn::Last),
             "rest" => Some(BuiltIn::Rest),
             "push" => Some(BuiltIn::Push),
+            "puts" => Some(BuiltIn::Puts),
             _ => None,
         }
     }
@@ -256,6 +260,13 @@ fn builtin_push(args: Vec<Object>) -> Object {
             Object::Error(msg)
         }
     }
+}
+
+fn builtin_puts(args: Vec<Object>) -> Object {
+    for arg in args {
+        println!("{}", arg.inspect());
+    }
+    Object::Null
 }
 
 pub fn create_hash_key(obj: Object) -> Option<HashKey> {

@@ -1,0 +1,5 @@
+-Hook this bad boy up to wasm
+-Cleanup (code organization in folders)
+-Look at Hashmap parsing and figure out a way to use rust hashmap
+-Lost Chapter
+-Compiler
