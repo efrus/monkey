@@ -1,17 +1,9 @@
 use crate::ast::{BlockStatement, Identifier};
 use crate::environment::Environment;
 use std::cell::RefCell;
+use std::collections::HashMap;
 use std::fmt;
 use std::rc::Rc;
-
-#[derive(Debug, Clone, PartialEq)]
-pub enum BuiltIn {
-    Len,
-    First,
-    Last,
-    Rest,
-    Push,
-}
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum Object {
@@ -23,10 +15,11 @@ pub enum Object {
     String(String),
     BuiltIn(BuiltIn),
     Array(Vec<Object>),
+    Hash(HashMap<HashKey, HashPair>),
     Null,
 }
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub enum ObjectType {
     Null,
     Error,
@@ -37,6 +30,28 @@ pub enum ObjectType {
     String,
     BuiltIn,
     Array,
+    Hash,
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub enum BuiltIn {
+    Len,
+    First,
+    Last,
+    Rest,
+    Push,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+pub struct HashKey {
+    obj_type: ObjectType,
+    value: u64,
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub struct HashPair {
+    pub key: Object,
+    pub value: Object,
 }
 
 impl Object {
@@ -59,6 +74,13 @@ impl Object {
                 }
                 format!("[{}]", s.join(", "))
             }
+            Object::Hash(map) => {
+                let mut pairs = vec![];
+                for pair in map.values() {
+                    pairs.push(format!("{}: {}", pair.key.inspect(), pair.value.inspect()));
+                }
+                format!("{{{}}}", pairs.join(", "))
+            }
         }
     }
 
@@ -73,6 +95,7 @@ impl Object {
             Object::String(_) => ObjectType::String,
             Object::BuiltIn(_) => ObjectType::BuiltIn,
             Object::Array(_) => ObjectType::Array,
+            Object::Hash(_) => ObjectType::Hash,
         }
     }
 }
@@ -89,6 +112,7 @@ impl fmt::Display for ObjectType {
             ObjectType::String => "STRING",
             ObjectType::BuiltIn => "BUILTIN",
             ObjectType::Array => "ARRAY",
+            ObjectType::Hash => "HASH",
         };
         write!(f, "{}", output)
     }
@@ -231,5 +255,29 @@ fn builtin_push(args: Vec<Object>) -> Object {
             let msg = "argument to 'rest' must be ARRAY".to_string();
             Object::Error(msg)
         }
+    }
+}
+
+pub fn create_hash_key(obj: Object) -> Option<HashKey> {
+    use std::collections::hash_map::DefaultHasher;
+    use std::hash::{Hash, Hasher};
+
+    let obj_type = obj.obj_type();
+    match obj {
+        Object::Boolean(b) => {
+            let value = if b { 1 } else { 0 };
+            Some(HashKey { obj_type, value })
+        }
+        Object::Integer(i) => Some(HashKey {
+            obj_type,
+            value: i as u64,
+        }),
+        Object::String(str) => {
+            let mut s = DefaultHasher::new();
+            str.hash(&mut s);
+            let value = s.finish();
+            Some(HashKey { obj_type, value })
+        }
+        _ => None,
     }
 }

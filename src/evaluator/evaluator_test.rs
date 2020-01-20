@@ -3,9 +3,11 @@ mod tests {
     use crate::environment::Environment;
     use crate::evaluator::evaluator;
     use crate::lexer::Lexer;
+    use crate::object;
     use crate::object::Object;
     use crate::parser::Parser;
     use std::cell::RefCell;
+    use std::collections::HashMap;
     use std::rc::Rc;
 
     fn test_eval(input: &str) -> Object {
@@ -404,6 +406,63 @@ mod tests {
             match expected {
                 Some(i) => test_integer_object(&evaluated, i),
                 None => (),
+            }
+        }
+    }
+
+    #[test]
+    fn test_hash_literals() {
+        let input = "let two = \"two\";
+        {
+            \"one\": 10 - 9,
+            two: 1 + 1,
+            \"thr\" + \"ee\": 6 / 2,
+            4: 4,
+            true: 5,
+            false: 6
+        }";
+
+        let evaluated = test_eval(input);
+        match evaluated {
+            Object::Hash(pairs) => {
+                let mut expected = HashMap::new();
+                expected.insert(
+                    object::create_hash_key(Object::String("one".to_string())),
+                    1,
+                );
+                expected.insert(
+                    object::create_hash_key(Object::String("two".to_string())),
+                    2,
+                );
+                expected.insert(
+                    object::create_hash_key(Object::String("three".to_string())),
+                    3,
+                );
+                expected.insert(object::create_hash_key(Object::Integer(4)), 4);
+                expected.insert(object::create_hash_key(Object::Boolean(true)), 5);
+                expected.insert(object::create_hash_key(Object::Boolean(false)), 6);
+
+                assert_eq!(pairs.len(), expected.len());
+                for (key, v) in &expected {
+                    let pc = pairs.clone();
+                    match key {
+                        Some(k) => match pc.get(k) {
+                            Some(val) => test_integer_object(&val.value, *v),
+                            None => {
+                                println!("can't find key");
+                                assert!(false);
+                            }
+                        },
+                        None => {
+                            println!("key is none");
+                            assert!(false);
+                        }
+                    }
+                }
+            }
+            _ => {
+                println!("object is not hash");
+                assert!(false);
             }
         }
     }

@@ -5,6 +5,7 @@ mod evaluator;
 mod lexer;
 mod lexer_test;
 mod object;
+mod object_test;
 mod parser;
 mod parser_test;
 mod repl;
