@@ -203,6 +203,8 @@ fn eval_prefix_expression(operator: &str, right: Object) -> Object {
 fn eval_index_expression(left: Object, index: Object) -> Object {
     if left.obj_type() == ObjectType::Array && index.obj_type() == ObjectType::Integer {
         return eval_array_index_expression(left, index);
+    } else if left.obj_type() == ObjectType::Hash {
+        return eval_hash_index_expression(left, index);
     }
     let msg = format!("index operator not supported: {}", left.obj_type());
     Object::Error(msg)
@@ -222,6 +224,19 @@ fn eval_array_index_expression(array: Object, index: Object) -> Object {
             _ => Object::Null,
         },
         _ => Object::Null,
+    }
+}
+
+fn eval_hash_index_expression(hash: Object, index: Object) -> Object {
+    match hash {
+        Object::Hash(hash_object) => match object::create_hash_key(index) {
+            Some(key) => match hash_object.get(&key) {
+                Some(pair) => pair.value.clone(),
+                None => Object::Null,
+            },
+            _ => Object::Error("unusable as hash key.".to_string()),
+        },
+        _ => Object::Error("expected hash.".to_string()),
     }
 }
 

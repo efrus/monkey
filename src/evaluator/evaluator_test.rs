@@ -194,6 +194,10 @@ mod tests {
             ),
             ("foobar", "identifier not found: foobar"),
             ("\"Hello\" - \"World", "unknown operator: STRING - STRING"),
+            (
+                "{\"name\": \"Monkey\"}[fn(x) { x}];",
+                "unusable as hash key.",
+            ),
         ];
 
         for (input, expected) in tests {
@@ -463,6 +467,26 @@ mod tests {
             _ => {
                 println!("object is not hash");
                 assert!(false);
+            }
+        }
+    }
+
+    #[test]
+    fn test_hash_index_expressions() {
+        let tests = vec![
+            ("{\"foo\": 5}[\"foo\"]", Some(5)),
+            ("{\"foo\": 5}[\"bar\"]", None),
+            ("let key = \"foo\";{\"foo\": 5}[key]", Some(5)),
+            ("{}[\"foo\"]", None),
+            ("{5: 5}[5]", Some(5)),
+            ("{true: 5}[true]", Some(5)),
+            ("{false: 5}[false]", Some(5)),
+        ];
+        for (input, expected) in tests {
+            let evaluated = test_eval(input);
+            match expected {
+                Some(i) => test_integer_object(&evaluated, i),
+                None => (),
             }
         }
     }
