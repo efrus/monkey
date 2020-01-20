@@ -1,7 +1,9 @@
 use crate::ast::{BlockStatement, Expression, Program, Statement};
 use crate::environment::Environment;
+use crate::object;
 use crate::object::{BuiltIn, Object, ObjectType};
 use std::cell::RefCell;
+use std::collections::HashMap;
 use std::rc::Rc;
 
 pub fn eval(program: Program, env: Rc<RefCell<Environment>>) -> Object {
@@ -107,6 +109,7 @@ fn eval_expression(expression: Expression, env: Rc<RefCell<Environment>>) -> Obj
             }
             eval_index_expression(left, index)
         }
+        Expression::HashLiteral(pairs) => eval_hash_literal(pairs, env),
         Expression::StringLiteral(s) => Object::String(s),
         _ => Object::Null,
     }
@@ -147,6 +150,43 @@ fn eval_expressions(expressions: Vec<Expression>, env: Rc<RefCell<Environment>>)
     }
 
     result
+}
+
+fn eval_hash_literal(
+    pairs: Vec<(Expression, Expression)>,
+    env: Rc<RefCell<Environment>>,
+) -> Object {
+    let mut map = HashMap::new();
+
+    let env = env.clone();
+
+    for (k, v) in pairs {
+        let key = eval_expression(k, env.clone());
+        let key_clone = key.clone();
+        if is_error(&key) {
+            return key;
+        }
+
+        match object::create_hash_key(key) {
+            Some(hash_key) => {
+                let value = eval_expression(v, env.clone());
+                if is_error(&value) {
+                    return value;
+                }
+                let hash_pair = object::HashPair {
+                    key: key_clone,
+                    value,
+                };
+                map.insert(hash_key, hash_pair);
+            }
+            None => {
+                let msg = format!("unusable as hash key: {}", key_clone.obj_type().to_string());
+                return Object::Error(msg);
+            }
+        }
+    }
+
+    Object::Hash(map)
 }
 
 fn eval_prefix_expression(operator: &str, right: Object) -> Object {
