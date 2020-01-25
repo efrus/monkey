@@ -31,7 +31,27 @@ pub fn start() -> Result<(), Box<dyn Error>> {
 
         let evaluated = evaluator::eval(program, env.clone());
         println!("{}", evaluated.inspect());
-
-        //println!("{}", program.to_string());
     }
+}
+
+pub fn interpret_text(input: &String, env: Rc<RefCell<Environment>>) -> String {
+    let lexer = Lexer::new(&input);
+    let mut parser = Parser::new(lexer);
+    let program = parser.parse_program();
+    if parser.errors().len() > 0 {
+        let mut output = vec![];
+        output.push("Woops! We ran into some monkey business here!");
+        output.push(" parser errors: ");
+        for s in parser.errors() {
+            output.push(s);
+        }
+        return output.join("\n");
+    }
+
+    let evaluated = evaluator::eval(program, env);
+    evaluated.inspect()
+}
+
+pub fn hello() -> String {
+    "hello monkey".to_string()
 }

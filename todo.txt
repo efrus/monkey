@@ -1,5 +1,6 @@
--Hook this bad boy up to wasm
+-Hook up to wasm
     -start with go playground approach
+    -use channels to accept input from front-end
     -look into xterm
 -Cleanup (code organization in folders)
 -Look at Hashmap parsing and figure out a way to use rust hashmap
