@@ -3,6 +3,7 @@
     -use channels to accept input from front-end
     -look into xterm
 -Cleanup (code organization in folders)
+-input of file
 -Look at Hashmap parsing and figure out a way to use rust hashmap
 -Look for other optimizations
 -Lost Chapter
