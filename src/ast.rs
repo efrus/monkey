@@ -118,26 +118,11 @@ impl fmt::Display for BlockStatement {
     }
 }
 
-pub fn hash_get(map: &Vec<(Expression, Expression)>, key: &Expression) -> Expression {
-    //TODO THIS FOR PERFORMANCE LATER
-    for (k, v) in map {
-        if k == key {
-            return v.clone();
-        }
-    }
-    Expression::None
-}
-
 pub fn hash_put(
     map: &mut Vec<(Expression, Expression)>,
     key: Expression,
     value: Expression,
 ) -> Expression {
-    let existing = hash_get(&map, &key);
-    if existing != Expression::None {
-        return Expression::None;
-    }
-
     map.push((key, value.clone()));
     value
 }

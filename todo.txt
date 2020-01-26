@@ -1,8 +1,6 @@
 -Hook up to wasm
     -resolve unsafe issue
     -look into xterm
--Cleanup (code organization in folders)
--Look at Hashmap parsing and figure out a way to use rust hashmap
 -Look for other optimizations
 -Lost Chapter
 -Compiler

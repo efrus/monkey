@@ -746,33 +746,11 @@ mod tests {
                 "add(a * b[2], b[1], 2 * [1, 2][1])",
                 "add((a * (b[2])), (b[1]), (2 * ([1, 2][1])))",
             ),
-            /*("if (x < y) { x }", "if (x < y) { x; }"),
-            (
-                "if (x < y) { x } else { y }",
-                "if (x < y) { x; } else { y; }",
-            ),
-            ("return x", "return x"),
-            ("return x return 2 * 3", "return x;return (2 * 3)"),
-            ("return 2 * 4 + 5;", "return ((2 * 4) + 5)"),
-            ("fn() { 3 * 9; }", "fn() { (3 * 9); }"),
-            ("fn(x) { x * 9; }", "fn(x) { (x * 9); }"),
-            ("fn(x, y) { x + y; }", "fn(x, y) { (x + y); }"),
-            ("call()", "call()"),
-            ("add(1, 2 * 3, 4 + 5)", "add(1, (2 * 3), (4 + 5))"),
-            ("a + add(b * c) + d", "((a + add((b * c))) + d)"),
-            (
-                "add(a, b, 1, 2 * 3, 4 + 5, add(6, 7 * 8))",
-                "add(a, b, 1, (2 * 3), (4 + 5), add(6, (7 * 8)))",
-            ),
-            (
-                "add(a + b + c * d / f + g)",
-                "add((((a + b) + ((c * d) / f)) + g))",
-            ),
-            ("fn(x, y) { x + y; }(3, 4)", "fn(x, y) { (x + y); }(3, 4)"),
+            ("return x;", "return x;"),
+            ("return x return 2 * 3", "return x;return (2 * 3);"),
+            ("return 2 * 4 + 5;", "return ((2 * 4) + 5);"),
             ("let x = 3", "let x = 3;"),
-            ("let x = 3 + f * 8;", "let x = (3 + (f * 8))"),
-            ("\"hello world\"", "\"hello world\""),
-            ("let s = \"hello world\"", "let s = \"hello world\""),*/
+            ("let x = 3 + f * 8;", "let x = (3 + (f * 8));"),
         ];
         for (input, expected) in tests {
             let lexer = Lexer::new(input);
@@ -915,7 +893,7 @@ mod tests {
                         for (k, v) in pairs {
                             match &k {
                                 Expression::StringLiteral(_literal) => {
-                                    match ast::hash_get(&expected, &k) {
+                                    match hash_get(&expected, &k) {
                                         Expression::IntegerLiteral(i) => {
                                             test_integer_literal(&v, i);
                                         }
@@ -943,6 +921,15 @@ mod tests {
                 }
             }
         }
+    }
+
+    fn hash_get(map: &Vec<(Expression, Expression)>, key: &Expression) -> Expression {
+        for (k, v) in map {
+            if k == key {
+                return v.clone();
+            }
+        }
+        Expression::None
     }
 
     #[test]
