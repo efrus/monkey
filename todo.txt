@@ -1,9 +1,7 @@
 -Hook up to wasm
-    -start with go playground approach
-    -use channels to accept input from front-end
+    -resolve unsafe issue
     -look into xterm
 -Cleanup (code organization in folders)
--input of file
 -Look at Hashmap parsing and figure out a way to use rust hashmap
 -Look for other optimizations
 -Lost Chapter
