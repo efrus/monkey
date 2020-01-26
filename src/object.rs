@@ -263,10 +263,11 @@ fn builtin_push(args: Vec<Object>) -> Object {
 }
 
 fn builtin_puts(args: Vec<Object>) -> Object {
+    let mut output = vec![];
     for arg in args {
-        println!("{}", arg.inspect());
+        output.push(arg.inspect());
     }
-    Object::Null
+    Object::String(output.join(" "))
 }
 
 pub fn create_hash_key(obj: Object) -> Option<HashKey> {
