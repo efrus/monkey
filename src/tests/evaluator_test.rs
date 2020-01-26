@@ -1,7 +1,7 @@
 #[cfg(test)]
 mod tests {
     use crate::environment::Environment;
-    use crate::evaluator::evaluator;
+    use crate::evaluator;
     use crate::lexer::Lexer;
     use crate::object;
     use crate::object::Object;

@@ -1,3 +1,4 @@
+use monkey;
 use monkey::repl;
 use std::env;
 use std::error::Error;
@@ -12,7 +13,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         //load file
         let file = &args[1];
         let contents = fs::read_to_string(file)?;
-        let output = repl::interpret_text(&contents);
+        let output = monkey::interpret_text(&contents);
         println!("{}", output);
     }
 
