@@ -9,6 +9,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         println!("Hello!  This is the Monkey programming Language.");
         repl::start()?;
     } else {
+        //load file
         let file = &args[1];
         let contents = fs::read_to_string(file)?;
         let output = repl::interpret_text(&contents);

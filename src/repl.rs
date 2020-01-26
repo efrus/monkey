@@ -56,7 +56,3 @@ pub fn interpret_text_env(input: &String, env: Rc<RefCell<Environment>>) -> Stri
     let evaluated = evaluator::eval(program, env);
     evaluated.inspect()
 }
-
-pub fn hello() -> String {
-    "hello monkey".to_string()
-}
