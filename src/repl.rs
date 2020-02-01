@@ -10,7 +10,7 @@ use std::rc::Rc;
 const PROMPT: &str = ">> ";
 
 pub fn start() -> Result<(), Box<dyn Error>> {
-    let env = Rc::new(RefCell::new(Environment::new()));
+    let env = Rc::new(RefCell::new(Environment::default()));
     loop {
         print!("{}", PROMPT);
         io::stdout().flush()?;
@@ -20,7 +20,7 @@ pub fn start() -> Result<(), Box<dyn Error>> {
         let lexer = Lexer::new(&input);
         let mut parser = Parser::new(lexer);
         let program = parser.parse_program();
-        if parser.errors().len() > 0 {
+        if !parser.errors().is_empty() {
             println!("Woops! We ran into some monkey business here!");
             println!(" parser errors: ");
             for s in parser.errors() {

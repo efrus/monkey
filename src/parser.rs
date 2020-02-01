@@ -119,7 +119,7 @@ impl<'a> Parser<'a> {
             self.next_token();
         }
 
-        return Some(Statement::Return(expression));
+        Some(Statement::Return(expression))
     }
 
     fn parse_expression_statement(&mut self) -> Option<Statement> {
@@ -130,7 +130,7 @@ impl<'a> Parser<'a> {
             self.next_token();
         }
 
-        return Some(statement);
+        Some(statement)
     }
 
     fn parse_expression(&mut self, precedence: Precedence) -> Expression {
@@ -144,7 +144,7 @@ impl<'a> Parser<'a> {
         }
         let mut peek_precedence = self.peek_precedence();
         let mut peek_token_is_semi_colon = self.peek_token_is(&Token::Semicolon);
-        let mut left_expr = prefix.clone();
+        let mut left_expr = prefix;
         while !peek_token_is_semi_colon && precedence < peek_precedence {
             if left_expr == Expression::None {
                 return left_expr;
@@ -241,16 +241,17 @@ impl<'a> Parser<'a> {
             return Expression::None;
         }
         let consequence = self.parse_block_statement();
-        let mut alt = None;
-        if self.peek_token_is(&Token::Else) {
+        let alt = if self.peek_token_is(&Token::Else) {
             self.next_token();
 
             if !self.expect_peek(Token::LBrace) {
                 return Expression::None;
             }
 
-            alt = Some(self.parse_block_statement());
-        }
+            Some(self.parse_block_statement())
+        } else {
+            None
+        };
         Expression::IfExpression(Box::new(condition), consequence, alt)
     }
 

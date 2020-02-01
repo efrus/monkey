@@ -14,7 +14,7 @@ mod tests {
         let lexer = Lexer::new(&input);
         let mut parser = Parser::new(lexer);
         let program = parser.parse_program();
-        let env = Rc::new(RefCell::new(Environment::new()));
+        let env = Rc::new(RefCell::new(Environment::default()));
         return evaluator::eval(program, env);
     }
     //#[test]

@@ -85,7 +85,7 @@ impl Object {
         }
     }
 
-    pub fn obj_type<'a>(&self) -> ObjectType {
+    pub fn obj_type(&self) -> ObjectType {
         match &self {
             Object::Integer(_) => ObjectType::Integer,
             Object::Boolean(_) => ObjectType::Boolean,
@@ -186,7 +186,7 @@ fn builtin_first(args: Vec<Object>) -> Object {
     }
     match &args[0] {
         Object::Array(elements) => {
-            if elements.len() == 0 {
+            if elements.is_empty() {
                 return Object::Null;
             }
             elements[0].clone()
@@ -205,7 +205,7 @@ fn builtin_last(args: Vec<Object>) -> Object {
     }
     match &args[0] {
         Object::Array(elements) => {
-            if elements.len() == 0 {
+            if elements.is_empty() {
                 return Object::Null;
             }
 
@@ -225,7 +225,7 @@ fn builtin_rest(args: Vec<Object>) -> Object {
     }
     match &args[0] {
         Object::Array(elements) => {
-            if elements.len() == 0 {
+            if elements.is_empty() {
                 return Object::Null;
             }
 
@@ -246,7 +246,7 @@ fn builtin_push(args: Vec<Object>) -> Object {
     }
     match &args[0] {
         Object::Array(elements) => {
-            if elements.len() == 0 {
+            if elements.is_empty() {
                 return Object::Null;
             }
 

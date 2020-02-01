@@ -34,7 +34,7 @@ fn eval_statement(statement: Statement, env: Rc<RefCell<Environment>>) -> Object
             Object::ReturnValue(Box::new(val))
         }
         Statement::Let(ident, expr) => {
-            let val = eval_expression(expr.clone(), env.clone());
+            let val = eval_expression(expr, env.clone());
             if !is_error(&val) {
                 env.borrow_mut().set(ident, val.clone());
             }
@@ -59,7 +59,7 @@ fn eval_expression(expression: Expression, env: Rc<RefCell<Environment>>) -> Obj
             if is_error(&l) {
                 return l;
             }
-            let r = eval_expression(*right, env.clone());
+            let r = eval_expression(*right, env);
             if is_error(&r) {
                 return r;
             }
@@ -71,7 +71,7 @@ fn eval_expression(expression: Expression, env: Rc<RefCell<Environment>>) -> Obj
                 return c;
             }
             if is_truthy(c) {
-                return eval_block_statement(consequence, env.clone());
+                return eval_block_statement(consequence, env);
             }
             match alt {
                 Some(val) => eval_block_statement(val, env),
@@ -79,7 +79,7 @@ fn eval_expression(expression: Expression, env: Rc<RefCell<Environment>>) -> Obj
             }
         }
         Expression::Ident(ident) => eval_identifier(ident, env),
-        Expression::FunctionLiteral(parms, body) => Object::Function(parms, body, env.clone()),
+        Expression::FunctionLiteral(parms, body) => Object::Function(parms, body, env),
         Expression::CallExpression(function, arguments) => {
             let function = eval_expression(*function, env.clone());
             if is_error(&function) {
@@ -128,7 +128,7 @@ fn eval_block_statement(block_statement: BlockStatement, env: Rc<RefCell<Environ
 
 fn eval_identifier(ident: String, env: Rc<RefCell<Environment>>) -> Object {
     match env.borrow().get(ident.clone()) {
-        Some(val) => val.clone(),
+        Some(val) => val,
         None => match BuiltIn::lookup_builtin(&ident) {
             Some(built_in) => Object::BuiltIn(built_in),
             None => {
@@ -157,8 +157,6 @@ fn eval_hash_literal(
     env: Rc<RefCell<Environment>>,
 ) -> Object {
     let mut map = HashMap::new();
-
-    let env = env.clone();
 
     for (k, v) in pairs {
         let key = eval_expression(k, env.clone());
@@ -219,7 +217,7 @@ fn eval_array_index_expression(array: Object, index: Object) -> Object {
                 if idx > max {
                     return Object::Null;
                 }
-                return elements[idx].clone();
+                elements[idx].clone()
             }
             _ => Object::Null,
         },
@@ -257,11 +255,11 @@ fn eval_infix_expression(operator: &str, left: Object, right: Object) -> Object 
                     operator,
                     right.obj_type()
                 );
-                return Object::Error(msg);
+                Object::Error(msg)
             } else if left.obj_type() == ObjectType::String
                 && right.obj_type() == ObjectType::String
             {
-                return eval_string_infix_expression(operator.to_string(), left, right);
+                eval_string_infix_expression(operator.to_string(), left, right)
             } else {
                 let msg = format!(
                     "unknown operator: {} {} {}",
@@ -269,7 +267,7 @@ fn eval_infix_expression(operator: &str, left: Object, right: Object) -> Object 
                     operator,
                     right.obj_type()
                 );
-                return Object::Error(msg);
+                Object::Error(msg)
             }
         }
     }

@@ -777,7 +777,7 @@ mod tests {
                 Statement::Expression(expr) => match expr {
                     Expression::StringLiteral(s) => {
                         if s != "hello world" {
-                            println!("literal value not {}, got={}", "hello world", s);
+                            println!("literal value not hello world, got={}", s);
                             assert!(false);
                         }
                     }

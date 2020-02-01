@@ -67,7 +67,7 @@ impl fmt::Display for Expression {
             Expression::Infix(left, operator, right) => {
                 format!("({} {} {})", left, operator, right)
             }
-            Expression::Boolean(b) => format!("{}", b.to_string()),
+            Expression::Boolean(b) => b.to_string(),
             Expression::IfExpression(condition, consequence, alternative) => {
                 let s = format!("if{} {}", condition.to_string(), consequence.to_string());
                 if let Some(alt) = alternative {

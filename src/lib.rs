@@ -14,16 +14,16 @@ use crate::parser::Parser;
 use std::cell::RefCell;
 use std::rc::Rc;
 
-pub fn interpret_text(input: &String) -> String {
-    let env = Rc::new(RefCell::new(Environment::new()));
+pub fn interpret_text(input: &str) -> String {
+    let env = Rc::new(RefCell::new(Environment::default()));
     interpret_text_env(input, env)
 }
 
-pub fn interpret_text_env(input: &String, env: Rc<RefCell<Environment>>) -> String {
+pub fn interpret_text_env(input: &str, env: Rc<RefCell<Environment>>) -> String {
     let lexer = Lexer::new(&input);
     let mut parser = Parser::new(lexer);
     let program = parser.parse_program();
-    if parser.errors().len() > 0 {
+    if !parser.errors().is_empty() {
         let mut output = vec![];
         output.push("Woops! We ran into some monkey business here!");
         output.push(" parser errors: ");
