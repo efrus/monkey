@@ -1,6 +1,0 @@
--Hook up to wasm
-    -resolve unsafe issue
-    -look into xterm
--Look for other optimizations
--Lost Chapter
--Compiler
