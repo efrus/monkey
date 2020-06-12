@@ -1,3 +1,3 @@
 # monkey
 
-Rust version of monkey languag, based on https://interpreterbook.com/
+Rust version of monkey language, based on https://interpreterbook.com/
